@@ -34,7 +34,7 @@
     "compile": "tsc",
     "lint": "tslint --project tslint.json",
     "package": "./package.sh",
-    "prepush": "npm run security-scan && npm run lint && npm test",
+    "prepush": "npm run security-scan && npm run lint",
     "security-scan": "git secrets --scan && git log -p | scanrepo",
     "test": "npm run compile && jasmine"
   },
