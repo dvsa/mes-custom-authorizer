@@ -1,13 +1,28 @@
-import { CustomAuthorizerEvent, Context } from 'aws-lambda';
+import { CustomAuthorizerEvent, CustomAuthorizerResult, Context } from 'aws-lambda';
 
-export async function handler(event: CustomAuthorizerEvent, fnCtx: Context) {
+function newCustomAuthorizerResult(principalId: string, effect: string, resource: string): CustomAuthorizerResult {
+  return {
+    principalId: principalId,
+    policyDocument: {
+      Version: '2012-10-17', // default version
+      Statement: [{
+          Action: 'execute-api:Invoke', // default action
+          Effect: effect,
+          Resource: resource
+      }]
+    }
+  };
+}
+
+export async function handler(event: CustomAuthorizerEvent, fnCtx: Context): Promise<CustomAuthorizerResult> {
   const token = event.authorizationToken;
+  const userId = 'user-id';
   if (token) {
     switch (token.toLowerCase()) {
       case 'allow':
-        return true;
+        return newCustomAuthorizerResult(userId, 'Allow', event.methodArn);
       case 'deny':
-        throw Error('Not allowed');
+        return newCustomAuthorizerResult(userId, 'Deny', event.methodArn);
       case 'unauthorized':
         throw Error('unauthorized');
       default:
