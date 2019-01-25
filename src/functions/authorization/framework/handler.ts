@@ -13,6 +13,9 @@ const newCustomAuthorizerResult = (principalId: string, effect: string, resource
     },
   });
 
+// Note: while manually copying in to AWS Lambda, change function declaration lines to:
+// This is the roughly equivalent JS that TSC would transpile to:
+// exports.handler = async function handler(event, fnCtx) {
 export async function handler(event: CustomAuthorizerEvent, fnCtx: Context)
   : Promise<CustomAuthorizerResult> {
   const token = event.authorizationToken;
