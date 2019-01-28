@@ -1,4 +1,4 @@
-service: mes-custom-authorizer
+service: mes-custom-authoriser
 
 provider:
   name: aws
@@ -8,8 +8,8 @@ package:
   individually: true
 
 functions:
-  authorization:
-    handler: src/functions/authorization/framework/handler.handler
+  authoriser:
+    handler: src/functions/authoriser/framework/handler.handler
 
 custom:
   webpack:

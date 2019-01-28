@@ -1,6 +1,6 @@
 import { CustomAuthorizerEvent, CustomAuthorizerResult, Context } from 'aws-lambda';
 
-const newCustomAuthorizerResult = (principalId: string, effect: string, resource: string)
+const newCustomAuthoriserResult = (principalId: string, effect: string, resource: string)
   : CustomAuthorizerResult => ({
     principalId,
     policyDocument: {
@@ -20,9 +20,9 @@ export async function handler(event: CustomAuthorizerEvent, fnCtx: Context)
   if (token) {
     switch (token.toLowerCase()) {
       case 'allow':
-        return newCustomAuthorizerResult(userId, 'Allow', event.methodArn);
+        return newCustomAuthoriserResult(userId, 'Allow', event.methodArn);
       case 'deny':
-        return newCustomAuthorizerResult(userId, 'Deny', event.methodArn);
+        return newCustomAuthoriserResult(userId, 'Deny', event.methodArn);
       case 'unauthorized':
         throw Error('unauthorized');
       default:
