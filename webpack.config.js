@@ -1,12 +1,11 @@
-const fs = require('fs');
 const path = require('path');
+const YAML = require('yamljs');
 
-const lambdaDir = path.join(__dirname, 'src', 'functions');
-const allEntries = fs.readdirSync(lambdaDir)
-    .reduce((entryObj, functionName) => {
-        entryObj[functionName] = `.${path.sep}${path.join('src', 'functions', functionName, 'framework', 'handler.ts')}`
-        return entryObj;
-    }, {});
+const allEntries = Object.keys(YAML.load('serverless.yml').functions)
+  .reduce((entryObj, functionName) => {
+    entryObj[functionName] = `.${path.sep}${path.join('src', 'functions', functionName, 'framework', 'handler.ts')}`
+    return entryObj;
+  }, {});
 
 module.exports = env => ({
   target: 'node',
