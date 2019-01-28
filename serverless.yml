@@ -1,0 +1,20 @@
+service: mes-custom-authorizer
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+
+package:
+  individually: true
+
+functions:
+  authorization:
+    handler: src/functions/authorization/framework/handler.handler
+
+custom:
+  webpack:
+    webpackConfig: 'webpack-sls-offline.config.js'
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
