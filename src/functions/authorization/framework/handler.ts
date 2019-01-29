@@ -1,7 +1,7 @@
 import * as util from 'util';
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
 import * as jwksClient from 'jwks-rsa';
-import fetch from 'node-fetch';
+import nodeFetch from 'node-fetch';
 import { AdJwtVerifier } from '../application/AdJwtVerifier';
 
 const ensureNotNullOrEmpty = (val: any, fieldName: string) => {
@@ -20,22 +20,22 @@ const createAdJwtVerifier = async (): Promise<AdJwtVerifier> => {
   ensureNotNullOrEmpty(tenantId, 'tenantId');
   ensureNotNullOrEmpty(applicationId, 'applicationId');
 
-  const openidConfig = await (await fetch(
-    `https://login.microsoftonline.com/${tenantId}/.well-known/openid-configuration`
+  const openidConfig = await (await nodeFetch(
+    `https://login.microsoftonline.com/${tenantId}/.well-known/openid-configuration`,
   )).json();
 
   if (openidConfig.error_description) {
-    throw 'Failed to get openid configuration: ' + openidConfig.error_description;
+    throw `Failed to get openid configuration: ${openidConfig.error_description}`;
   }
 
   const jwksclient = jwksClient({
     jwksUri: openidConfig.jwks_uri,
     cache: true,
-    cacheMaxEntries: 10
+    cacheMaxEntries: 10,
   });
 
   return new AdJwtVerifier(applicationId, openidConfig.issuer, {
-    getSigningKey: util.promisify(jwksclient.getSigningKey)
+    getSigningKey: util.promisify(jwksclient.getSigningKey),
   });
 };
 
@@ -73,9 +73,8 @@ export async function handler(event: CustomAuthorizerEvent) : Promise<CustomAuth
   try {
     const verifiedToken = await adJwtVerifier.verifyJwt(token);
     return createAuthResult(verifiedToken.unique_name, 'Allow', event.methodArn);
-  }
-  catch (err) {
+  } catch (err) {
     console.log(`Responding with Deny. Token is not valid: ${err}`);
-    return createAuthResult('unauthorized: ' + err, 'Deny', event.methodArn);
+    return createAuthResult(`unauthorized: ${err}`, 'Deny', event.methodArn);
   }
 }

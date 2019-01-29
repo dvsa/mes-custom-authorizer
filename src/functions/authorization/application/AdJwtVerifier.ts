@@ -37,13 +37,13 @@ export class AdJwtVerifier {
 
     const rsaPublicKey = signingKey.publicKey || signingKey.rsaPublicKey || '';
     if (rsaPublicKey === '') {
-      throw 'Error: no RSA public key for kid: ' + kid;
+      throw `Error: no RSA public key for kid: ${kid}`;
     }
 
     return jwt.verify(token, rsaPublicKey, {
       audience: this.applicationId,
       issuer: this.issuer,
-      clockTolerance: 30 /* seconds */
+      clockTolerance: 30, /* seconds */
     });
   }
 }
