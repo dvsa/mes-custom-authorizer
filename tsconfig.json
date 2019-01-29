@@ -12,6 +12,7 @@
     "experimentalDecorators": true
   },
   "include": [
+    "./typings/**/*",
     "./src/**/*",
     "./spec/**/*"
   ],

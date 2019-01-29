@@ -1,6 +1,49 @@
-import { CustomAuthorizerEvent, CustomAuthorizerResult, Context } from 'aws-lambda';
+import * as util from 'util';
+import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
+import * as jwksClient from 'jwks-rsa';
+import fetch from 'node-fetch';
+import { AdJwtVerifier } from '../application/AdJwtVerifier';
 
-const newCustomAuthorizerResult = (principalId: string, effect: string, resource: string)
+const ensureNotNullOrEmpty = (val: any, fieldName: string) => {
+  if (val === null || val === undefined || val === '') {
+    throw `Error: ${fieldName} is null or empty`;
+  }
+};
+
+/**
+ * Creates an AdJwtVerifier that can verify the authenticity of Azure Active Directory JWTs.
+ */
+const createAdJwtVerifier = async (): Promise<AdJwtVerifier> => {
+  const tenantId: string = process.env.DVSA_MES_AzureAD_TenantId || '';
+  const applicationId: string = process.env.DVSA_MES_AzureAD_ClientId || '';
+
+  ensureNotNullOrEmpty(tenantId, 'tenantId');
+  ensureNotNullOrEmpty(applicationId, 'applicationId');
+
+  const openidConfig = await (await fetch(
+    `https://login.microsoftonline.com/${tenantId}/.well-known/openid-configuration`
+  )).json();
+
+  if (openidConfig.error_description) {
+    throw 'Failed to get openid configuration: ' + openidConfig.error_description;
+  }
+
+  const jwksclient = jwksClient({
+    jwksUri: openidConfig.jwks_uri,
+    cache: true,
+    cacheMaxEntries: 10
+  });
+
+  return new AdJwtVerifier(applicationId, openidConfig.issuer, {
+    getSigningKey: util.promisify(jwksclient.getSigningKey)
+  });
+};
+
+/**
+ * Helper to create AWS Custom Authorizer Result policy documents.
+ */
+type Effect = 'Allow' | 'Deny';
+const createAuthResult = (principalId: string, effect: Effect, resource: string)
   : CustomAuthorizerResult => ({
     principalId,
     policyDocument: {
@@ -13,21 +56,26 @@ const newCustomAuthorizerResult = (principalId: string, effect: string, resource
     },
   });
 
-export async function handler(event: CustomAuthorizerEvent, fnCtx: Context)
-  : Promise<CustomAuthorizerResult> {
-  const token = event.authorizationToken;
-  const userId = 'user-id';
-  if (token) {
-    switch (token.toLowerCase()) {
-      case 'allow':
-        return newCustomAuthorizerResult(userId, 'Allow', event.methodArn);
-      case 'deny':
-        return newCustomAuthorizerResult(userId, 'Deny', event.methodArn);
-      case 'unauthorized':
-        throw Error('unauthorized');
-      default:
-        throw Error('unauthorized');
-    }
+/**
+ * Exported entry point to the Custom Authorizer Lambda.
+ */
+let adJwtVerifier: AdJwtVerifier | null = null;
+export async function handler(event: CustomAuthorizerEvent) : Promise<CustomAuthorizerResult> {
+  // One-time initialization
+  if (adJwtVerifier === null) {
+    adJwtVerifier = await createAdJwtVerifier();
   }
-  throw Error('fallback error');
+
+  // Get token from event, and verify
+  const token = event.authorizationToken || '';
+  ensureNotNullOrEmpty(token, 'event.authorizationToken');
+
+  try {
+    const verifiedToken = await adJwtVerifier.verifyJwt(token);
+    return createAuthResult(verifiedToken.unique_name, 'Allow', event.methodArn);
+  }
+  catch (err) {
+    console.log(`Responding with Deny. Token is not valid: ${err}`);
+    return createAuthResult('unauthorized: ' + err, 'Deny', event.methodArn);
+  }
 }
