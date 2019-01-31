@@ -6,6 +6,7 @@
 .Spotlight-V100
 .Trashes
 ehthumbs.db
+/local-test.js
 # Ignore from project
 node_modules
 build
