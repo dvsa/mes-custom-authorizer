@@ -74,7 +74,14 @@ export async function handler(event: CustomAuthorizerEvent) : Promise<CustomAuth
     const verifiedToken = await adJwtVerifier.verifyJwt(token);
     return createAuthResult(verifiedToken.unique_name, 'Allow', event.methodArn);
   } catch (err) {
-    console.log(`Responding with Deny. Token is not valid: ${err}`);
-    return createAuthResult(`unauthorized: ${err}`, 'Deny', event.methodArn);
+    const failedAuthLogMessage = JSON.stringify({
+      message: 'Failed authorization. Responding with Deny.',
+      reason: err && err.toString ? err.toString() : null,
+      err: err,
+      timestamp: new Date(),
+      event,
+    });
+    console.log(failedAuthLogMessage);
+    return createAuthResult('not-authorized', 'Deny', event.methodArn);
   }
 }
