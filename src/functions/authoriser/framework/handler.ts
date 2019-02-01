@@ -2,7 +2,7 @@ import * as util from 'util';
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
 import * as jwksClient from 'jwks-rsa';
 import nodeFetch from 'node-fetch';
-import { AdJwtVerifier } from '../application/AdJwtVerifier';
+import AdJwtVerifier from '../application/AdJwtVerifier';
 import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
 
 /**

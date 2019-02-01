@@ -15,7 +15,7 @@ export interface VerifiedTokenPayload {
   readonly unique_name: string;
 }
 
-export class AdJwtVerifier {
+export default class AdJwtVerifier {
   private applicationId: string;
   private issuer: string;
   private jwksClient: JwksClient;
