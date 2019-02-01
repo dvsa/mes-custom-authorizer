@@ -75,11 +75,11 @@ export async function handler(event: CustomAuthorizerEvent) : Promise<CustomAuth
     return createAuthResult(verifiedToken.unique_name, 'Allow', event.methodArn);
   } catch (err) {
     const failedAuthLogMessage = JSON.stringify({
+      err,
+      event,
       message: 'Failed authorization. Responding with Deny.',
       reason: err && err.toString ? err.toString() : null,
-      err: err,
       timestamp: new Date(),
-      event,
     });
     console.log(failedAuthLogMessage);
     return createAuthResult('not-authorized', 'Deny', event.methodArn);
