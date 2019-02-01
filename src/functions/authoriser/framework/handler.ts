@@ -1,39 +1,7 @@
-import * as util from 'util';
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
-import * as jwksClient from 'jwks-rsa';
-import nodeFetch from 'node-fetch';
 import AdJwtVerifier from '../application/AdJwtVerifier';
+import createAdJwtVerifier from './createAdJwtVerifier';
 import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
-
-/**
- * Creates an AdJwtVerifier that can verify the authenticity of Azure Active Directory JWTs.
- */
-const createAdJwtVerifier = async (): Promise<AdJwtVerifier> => {
-  const tenantId: string = process.env.DVSA_MES_AzureAD_TenantId || '';
-  const applicationId: string = process.env.DVSA_MES_AzureAD_ClientId || '';
-
-  ensureNotNullOrEmpty(tenantId, 'tenantId');
-  ensureNotNullOrEmpty(applicationId, 'applicationId');
-
-  const openidConfigRes = await nodeFetch(
-    `https://login.microsoftonline.com/${tenantId}/.well-known/openid-configuration`,
-  );
-  const openidConfig = await openidConfigRes.json();
-
-  if (openidConfig.error_description) {
-    throw new Error(`Failed to get openid configuration: ${openidConfig.error_description}`);
-  }
-
-  const jwksclient = jwksClient({
-    jwksUri: openidConfig.jwks_uri,
-    cache: true,
-    cacheMaxEntries: 10,
-  });
-
-  return new AdJwtVerifier(applicationId, openidConfig.issuer, {
-    getSigningKey: util.promisify(jwksclient.getSigningKey),
-  });
-};
 
 /**
  * Helper to create AWS Custom Authorizer Result policy documents.
@@ -56,7 +24,7 @@ const createAuthResult = (principalId: string, effect: Effect, resource: string)
  * Exported entry point to the Custom Authorizer Lambda.
  */
 let adJwtVerifier: AdJwtVerifier | null = null;
-export async function handler(event: CustomAuthorizerEvent) : Promise<CustomAuthorizerResult> {
+export async function handler(event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> {
   // One-time initialization
   if (adJwtVerifier === null) {
     adJwtVerifier = await createAdJwtVerifier();
