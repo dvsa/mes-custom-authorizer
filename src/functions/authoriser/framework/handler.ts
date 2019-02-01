@@ -3,12 +3,7 @@ import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
 import * as jwksClient from 'jwks-rsa';
 import nodeFetch from 'node-fetch';
 import { AdJwtVerifier } from '../application/AdJwtVerifier';
-
-const ensureNotNullOrEmpty = (val: any, fieldName: string) => {
-  if (val === null || val === undefined || val === '') {
-    throw new Error(`${fieldName} is null or empty`);
-  }
-};
+import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
 
 /**
  * Creates an AdJwtVerifier that can verify the authenticity of Azure Active Directory JWTs.
