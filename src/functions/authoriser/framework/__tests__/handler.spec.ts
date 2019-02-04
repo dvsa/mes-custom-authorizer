@@ -55,7 +55,8 @@ describe('handler', () => {
 
   it('should return Allow when token verification passes', async () => {
     testCustomAuthorizerEvent.authorizationToken = 'example-token';
-    testCustomAuthorizerEvent.methodArn = 'test-methodArn';
+    testCustomAuthorizerEvent.methodArn =
+      'arn:aws:execute-api:region:account-id:api-id/stage-name/HTTP-VERB/resource/path/specifier';
 
     const testVerifiedTokenPayload: VerifiedTokenPayload = {
       sub: 'test-subject',
@@ -71,7 +72,7 @@ describe('handler', () => {
     // ASSERT
     expect(result.policyDocument.Statement[0].Effect).toEqual('Allow');
     expect((<{ Resource: string }>result.policyDocument.Statement[0]).Resource)
-      .toEqual('test-methodArn');
+      .toEqual('arn:aws:execute-api:region:account-id:api-id/stage-name/*/*');
     expect(result.principalId).toEqual('test-unique_name');
 
     mockAdJwtVerifier.verify(x => x.verifyJwt('example-token'), Times.once());
@@ -79,7 +80,8 @@ describe('handler', () => {
 
   it('should return Deny when token verification fails', async () => {
     testCustomAuthorizerEvent.authorizationToken = 'example-token';
-    testCustomAuthorizerEvent.methodArn = 'test-methodArn';
+    testCustomAuthorizerEvent.methodArn =
+      'arn:aws:execute-api:region:account-id:api-id/stage-name/HTTP-VERB/resource/path/specifier';
 
     mockAdJwtVerifier.setup(x => x.verifyJwt(It.isAny()))
       .throws(new Error('Example invalid token error'));
@@ -90,7 +92,7 @@ describe('handler', () => {
     // ASSERT
     expect(result.policyDocument.Statement[0].Effect).toEqual('Deny');
     expect((<{ Resource: string }>result.policyDocument.Statement[0]).Resource)
-      .toEqual('test-methodArn');
+      .toEqual('arn:aws:execute-api:region:account-id:api-id/stage-name/*/*');
     expect(result.principalId).toEqual('not-authorized');
 
     mockAdJwtVerifier.verify(x => x.verifyJwt('example-token'), Times.once());

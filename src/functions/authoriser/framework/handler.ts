@@ -2,6 +2,7 @@ import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
 import AdJwtVerifier from '../application/AdJwtVerifier';
 import createAdJwtVerifier from './createAdJwtVerifier';
 import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
+import * as transformMethodArn from '../application/transformMethodArn';
 
 /**
  * Helper to create AWS Custom Authorizer Result policy documents.
@@ -34,9 +35,11 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
   const token = event.authorizationToken || '';
   ensureNotNullOrEmpty(token, 'event.authorizationToken');
 
+  const methodArn = transformMethodArn.toAllVerbsAndAllResources(event.methodArn);
+
   try {
     const verifiedToken = await adJwtVerifier.verifyJwt(token);
-    return createAuthResult(verifiedToken.unique_name, 'Allow', event.methodArn);
+    return createAuthResult(verifiedToken.unique_name, 'Allow', methodArn);
   } catch (err) {
     const failedAuthLogMessage = JSON.stringify({
       message: 'Failed authorization. Responding with Deny.',
@@ -45,6 +48,6 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
       err, event, // tslint:disable-line
     });
     console.log(failedAuthLogMessage);
-    return createAuthResult('not-authorized', 'Deny', event.methodArn);
+    return createAuthResult('not-authorized', 'Deny', methodArn);
   }
 }
