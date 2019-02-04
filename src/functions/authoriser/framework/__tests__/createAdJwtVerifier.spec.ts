@@ -51,12 +51,13 @@ describe('createAdJwtVerifier', () => {
     // ACT
     try {
       result = await sut();
-    } catch(err) {
+    } catch (err) {
       errorThrown = err;
     }
 
     // ASSERT
-    expect(errorThrown).toEqual(new Error('process.env.DVSA_MES_AzureAD_TenantId is null or empty'));
+    expect(errorThrown)
+      .toEqual(new Error('process.env.DVSA_MES_AzureAD_TenantId is null or empty'));
     expect(result).toBeUndefined();
   });
 
@@ -69,34 +70,38 @@ describe('createAdJwtVerifier', () => {
     // ACT
     try {
       result = await sut();
-    } catch(err) {
+    } catch (err) {
       errorThrown = err;
     }
 
     // ASSERT
-    expect(errorThrown).toEqual(new Error('process.env.DVSA_MES_AzureAD_ClientId is null or empty'));
+    expect(errorThrown)
+      .toEqual(new Error('process.env.DVSA_MES_AzureAD_ClientId is null or empty'));
     expect(result).toBeUndefined();
   });
 
-  it('throws an error if the OpenID response json contains the `error_description` field', async () => {
-    testOpenidConfig = {
-      error_description: 'Example error in OpenID Config',
-    };
+  it(
+    'throws an error if the OpenID response json contains the `error_description` field',
+    async () => {
+      testOpenidConfig = {
+        error_description: 'Example error in OpenID Config',
+      };
 
-    let errorThrown: Error | undefined;
-    let result: AdJwtVerifier | undefined;
+      let errorThrown: Error | undefined;
+      let result: AdJwtVerifier | undefined;
 
-    // ACT
-    try {
-      result = await sut();
-    } catch(err) {
-      errorThrown = err;
-    }
+      // ACT
+      try {
+        result = await sut();
+      } catch (err) {
+        errorThrown = err;
+      }
 
-    // ASSERT
-    expect(errorThrown).toEqual(new Error('Failed to get openid configuration: Example error in OpenID Config'));
-    expect(result).toBeUndefined();
-  });
+      // ASSERT
+      expect(errorThrown).toEqual(
+        new Error('Failed to get openid configuration: Example error in OpenID Config'));
+      expect(result).toBeUndefined();
+    });
 
   it('returns an `AdJwtVerifier` with the expected applicationId and issuer', async () => {
     // ACT
@@ -112,7 +117,7 @@ describe('createAdJwtVerifier', () => {
     await sut();
 
     // ASSERT
-    const expectedOpenIdConnectDiscoveryUrl = 
+    const expectedOpenIdConnectDiscoveryUrl =
       'https://login.microsoftonline.com/example-TenantId/.well-known/openid-configuration';
 
     moqNodeFetch.verify(x => x(expectedOpenIdConnectDiscoveryUrl), Times.once());
