@@ -37,7 +37,7 @@ export class AdJwtVerifier {
 
     const rsaPublicKey = signingKey.publicKey || signingKey.rsaPublicKey || '';
     if (rsaPublicKey === '') {
-      throw `Error: no RSA public key for kid: ${kid}`;
+      throw new Error(`No public RSA key for kid: ${kid}`);
     }
 
     return jwt.verify(token, rsaPublicKey, {

@@ -36,3 +36,23 @@ To run the unit tests, simply run:
 ```shell
 npm test
 ```
+
+## Debugging / tracing the `jwks-rsa` package and specifically the `jwksClient`
+
+The `jwksClient` provides the ability to retrieve and cache RSA public keys from the specified
+JWKS (JSON Web Key Set) endpoint.
+
+In order to prevent a call to be made each time a signing key needs to be retrieved the
+`jwksClient` has been configured to cache as follows.  If a signing key matching the kid is found,
+this will be cached and the next time this kid is requested the signing key will be served from
+the cache instead of calling back to the JWKS endpoint.
+
+To get trace logs of what the `jwksClient` is doing internally, and how often it is making
+requests to the JWKS endpoint, we can enable debugging for just the library by setting the
+`DEBUG` envrionment variable to include the value `jwks`.
+
+For example:
+
+```
+$ DEBUG=jwks node ./local-test.js eyJ0eXAiOi...
+```
