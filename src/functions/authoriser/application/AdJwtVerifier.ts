@@ -1,4 +1,4 @@
-import * as jwt from 'jsonwebtoken';
+import { decode, verify } from 'jsonwebtoken';
 
 export interface JsonWebKey {
   readonly kid: string;
@@ -15,10 +15,10 @@ export interface VerifiedTokenPayload {
   readonly unique_name: string;
 }
 
-export class AdJwtVerifier {
-  private applicationId: string;
-  private issuer: string;
-  private jwksClient: JwksClient;
+export default class AdJwtVerifier {
+  readonly applicationId: string;
+  readonly issuer: string;
+  readonly jwksClient: JwksClient;
 
   constructor(applicationId: string, issuer: string, jwksClient: JwksClient) {
     this.applicationId = applicationId;
@@ -32,7 +32,7 @@ export class AdJwtVerifier {
    * returns - The decoded and verified token.
    */
   async verifyJwt(token: string): Promise<VerifiedTokenPayload> {
-    const kid = jwt.decode(token, { complete: true }).header.kid;
+    const kid = decode(token, { complete: true }).header.kid;
     const signingKey = await this.jwksClient.getSigningKey(kid);
 
     const rsaPublicKey = signingKey.publicKey || signingKey.rsaPublicKey || '';
@@ -40,7 +40,7 @@ export class AdJwtVerifier {
       throw new Error(`No public RSA key for kid: ${kid}`);
     }
 
-    return jwt.verify(token, rsaPublicKey, {
+    return verify(token, rsaPublicKey, {
       audience: this.applicationId,
       issuer: this.issuer,
       clockTolerance: 30, /* seconds */

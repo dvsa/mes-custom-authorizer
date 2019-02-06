@@ -1,6 +1,6 @@
 import { Mock, It, Times } from 'typemoq';
 import * as jwt from 'jsonwebtoken';
-import { AdJwtVerifier, JwksClient, JsonWebKey } from '../AdJwtVerifier';
+import AdJwtVerifier, { JwksClient, JsonWebKey } from '../AdJwtVerifier';
 
 describe('AdJwtVerifier', () => {
   const moqJwtDecode = Mock.ofInstance(jwt.decode);
