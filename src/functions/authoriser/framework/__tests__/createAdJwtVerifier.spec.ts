@@ -38,12 +38,12 @@ describe('createAdJwtVerifier', () => {
     spyOn(nodeFetch, 'default').and.callFake(moqNodeFetch.object);
     spyOn(jwks, 'jwksClientFactory').and.callFake(moqJwksClientFactory.object);
 
-    process.env.DVSA_MES_AzureAD_TenantId = 'example-TenantId';
-    process.env.DVSA_MES_AzureAD_ClientId = 'example-ClientId';
+    process.env.AZURE_AD_TENANT_ID = 'example-TenantId';
+    process.env.AZURE_AD_CLIENT_ID = 'example-ClientId';
   });
 
   it('throws an error if TenantId is not set', async () => {
-    delete process.env.DVSA_MES_AzureAD_TenantId;
+    delete process.env.AZURE_AD_TENANT_ID;
 
     let errorThrown: Error | undefined;
     let result: AdJwtVerifier | undefined;
@@ -57,12 +57,12 @@ describe('createAdJwtVerifier', () => {
 
     // ASSERT
     expect(errorThrown)
-      .toEqual(new Error('process.env.DVSA_MES_AzureAD_TenantId is null or empty'));
+      .toEqual(new Error('process.env.AZURE_AD_TENANT_ID is null or empty'));
     expect(result).toBeUndefined();
   });
 
   it('throws an error if ClientId is not set', async () => {
-    delete process.env.DVSA_MES_AzureAD_ClientId;
+    delete process.env.AZURE_AD_CLIENT_ID;
 
     let errorThrown: Error | undefined;
     let result: AdJwtVerifier | undefined;
@@ -76,7 +76,7 @@ describe('createAdJwtVerifier', () => {
 
     // ASSERT
     expect(errorThrown)
-      .toEqual(new Error('process.env.DVSA_MES_AzureAD_ClientId is null or empty'));
+      .toEqual(new Error('process.env.AZURE_AD_CLIENT_ID is null or empty'));
     expect(result).toBeUndefined();
   });
 

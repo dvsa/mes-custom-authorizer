@@ -8,11 +8,11 @@ import { jwksClientFactory } from './jwks';
  * Creates an AdJwtVerifier that can verify the authenticity of Azure Active Directory JWTs.
  */
 export default async function createAdJwtVerifier(): Promise<AdJwtVerifier> {
-  const tenantId: string = process.env.DVSA_MES_AzureAD_TenantId || '';
-  const applicationId: string = process.env.DVSA_MES_AzureAD_ClientId || '';
+  const tenantId: string = process.env.AZURE_AD_TENANT_ID || '';
+  const applicationId: string = process.env.AZURE_AD_CLIENT_ID || '';
 
-  ensureNotNullOrEmpty(tenantId, 'process.env.DVSA_MES_AzureAD_TenantId');
-  ensureNotNullOrEmpty(applicationId, 'process.env.DVSA_MES_AzureAD_ClientId');
+  ensureNotNullOrEmpty(tenantId, 'process.env.AZURE_AD_TENANT_ID');
+  ensureNotNullOrEmpty(applicationId, 'process.env.AZURE_AD_CLIENT_ID');
 
   const openidConfigRes = await nodeFetch(
     `https://login.microsoftonline.com/${tenantId}/.well-known/openid-configuration`,
