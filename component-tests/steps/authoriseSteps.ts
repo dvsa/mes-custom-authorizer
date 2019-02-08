@@ -3,6 +3,7 @@ import { Mock, It, Times, IMock } from 'typemoq';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as crypto from 'crypto';
+import { Buffer } from 'buffer';
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
 import * as jsonwebtoken from 'jsonwebtoken';
 import * as testKeys from './testKeys';
@@ -28,6 +29,20 @@ const createToken = (context: AuthoriseStepsContext, notBefore: number, expiresI
   };
 
   return jsonwebtoken.sign(payload, testKeys.ourCertificate.privateKey, signOptions);
+}
+
+const base64Decode = (base64String: string): { [propName: string]: any } => {
+  const buffer = new Buffer(base64String, 'base64');
+  const json = buffer.toString('ascii');
+  const object = JSON.parse(json);
+  return object;
+}
+
+const base64Encode = (object: any): string => {
+  const json = JSON.stringify(object);
+  const buffer = new Buffer(json);
+  const base64String = buffer.toString('base64');  
+  return base64String;
 }
 
 interface AuthoriseStepsContext {
@@ -105,14 +120,37 @@ Given('a methodArn of {string}', function (methodArn: string) {
   context.methodArn = methodArn;
 });
 
-Given('the token\'s payload is changed', () => {
-  // rs-todo: Write code here that turns the phrase above into concrete actions
-  return 'pending';
+Given('the token\'s payload is changed', function () {
+  const context: AuthoriseStepsContext = this.context;
+
+  const parts = context.token.split('.');
+
+  const payload = base64Decode(parts[1]);
+  payload['unique_name'] = uuid();
+  parts[1] = base64Encode(payload).replace('=', '');
+
+  context.token = parts.join('.');
 });
 
-Given('the token\'s header is changed', () => {
-  // rs-todo: Write code here that turns the phrase above into concrete actions
-  return 'pending';
+Given('the token\'s header is changed', function () {
+  const context: AuthoriseStepsContext = this.context;
+
+  const parts = context.token.split('.');
+  
+  const header = base64Decode(parts[0]);
+  header['test'] = 'abc';
+  parts[0] = base64Encode(header).replace('=', '');
+
+  context.token = parts.join('.');
+});
+
+Given('the token\'s signature is removed', function () {
+  const context: AuthoriseStepsContext = this.context;
+
+  const parts = context.token.split('.');
+  parts[2] = '';
+
+  context.token = parts.join('.');
 });
 
 When('the token is verified', async function () {

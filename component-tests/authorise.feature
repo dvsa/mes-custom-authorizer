@@ -44,7 +44,13 @@ Feature: As a user of the web API, I want to authenticate and authorize with the
         Then the result should Deny access
         And the failed authorization reason should contain "jwt expired"
 
-# Scenario: Invalid signature due to signature removal, should Deny access
+    Scenario: Invalid signature due to signature removal, should Deny access
+        Given a valid token
+        And the token's signature is removed
+        When the token is verified
+        Then the result should Deny access
+        And the failed authorization reason should contain "jwt signature is required"
+
 # Scenario: Invalid signature due to signature change, should Deny access
 # Scenario: Invalid signature due to non-genuine signing certificate, should Deny access
 # Scenario: Invalid source (i.e. identity provider / issuer), should Deny access
