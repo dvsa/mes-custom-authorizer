@@ -33,13 +33,13 @@ Feature: As a user of the web API, I want to authenticate and authorize with the
         And the failed authorization reason should contain "invalid signature"
 
     Scenario: Invalid due to use of token before valid time range (i.e. not-before), should Deny access
-        Given a token that is valid between 2 hours and 4 hours
+        Given a token that is valid between 2 hours and 3 hours
         When the token is verified
         Then the result should Deny access
         And the failed authorization reason should contain "jwt not active"
 
     Scenario: Invalid due to use of token after valid time range (i.e. expiration), should Deny access
-        Given a token that is valid between -4 hours and -2 hours
+        Given a token that is valid between -3 hours and -2 hours
         When the token is verified
         Then the result should Deny access
         And the failed authorization reason should contain "jwt expired"
