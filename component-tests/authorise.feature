@@ -51,7 +51,20 @@ Feature: As a user of the web API, I want to authenticate and authorize with the
         Then the result should Deny access
         And the failed authorization reason should contain "jwt signature is required"
 
-# Scenario: Invalid signature due to signature change, should Deny access
-# Scenario: Invalid signature due to non-genuine signing certificate, should Deny access
-# Scenario: Invalid source (i.e. identity provider / issuer), should Deny access
-# Scenario: Invalid target (i.e. application / client / audience), should Deny access
+    Scenario: Invalid signature due to non-genuine signing certificate, should Deny access
+        Given a token signed with a non-genuine certificate
+        When the token is verified
+        Then the result should Deny access
+        And the failed authorization reason should contain "invalid signature"
+
+    Scenario: Invalid source (i.e. identity provider / issuer), should Deny access
+        Given a valid token but from a different issuer
+        When the token is verified
+        Then the result should Deny access
+        And the failed authorization reason should contain "jwt issuer invalid"
+
+    Scenario: Invalid target (i.e. application / client / audience), should Deny access
+        Given a valid token but intended for another application
+        When the token is verified
+        Then the result should Deny access
+        And the failed authorization reason should contain "jwt audience invalid"

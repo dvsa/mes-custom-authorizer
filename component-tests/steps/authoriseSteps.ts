@@ -13,7 +13,13 @@ import AdJwtVerifier, { JwksClient } from '../../src/functions/authoriser/applic
 const uuid = () => crypto.randomBytes(16).toString('hex');
 const oneMinute = 60;
 
-const createToken = (context: AuthoriseStepsContext, notBefore: number, expiresIn: number): string => {
+const createToken = (
+  context: AuthoriseStepsContext,
+  notBefore?: number,
+  expiresIn?: number,
+  privateKey?: string,
+  issuer?: string,
+  audience?: string): string => {
   const payload = {
     unique_name: context.testTokenUniqueName,
   };
@@ -21,14 +27,14 @@ const createToken = (context: AuthoriseStepsContext, notBefore: number, expiresI
   const signOptions: jsonwebtoken.SignOptions = {
     algorithm: 'RS256',
     keyid: context.testKid,
-    audience: context.testAppId,
-    issuer: context.testIssuer,
+    audience: audience || context.testAppId,
+    issuer: issuer || context.testIssuer,
     subject: context.testTokenSubject,
-    notBefore: notBefore,
-    expiresIn: expiresIn,
+    notBefore: notBefore || -oneMinute,
+    expiresIn: expiresIn || (oneMinute * 5),
   };
 
-  return jsonwebtoken.sign(payload, testKeys.ourCertificate.privateKey, signOptions);
+  return jsonwebtoken.sign(payload, privateKey || testKeys.ourCertificate.privateKey, signOptions);
 }
 
 const base64Decode = (base64String: string): { [propName: string]: any } => {
@@ -105,7 +111,7 @@ Given('a custom authoriser lambda', function () {
 
 Given('a valid token', function () {
   const context: AuthoriseStepsContext = this.context;
-  context.token = createToken(context, -oneMinute, oneMinute * 5);
+  context.token = createToken(context);
 });
 
 Given(
@@ -114,6 +120,21 @@ Given(
     const context: AuthoriseStepsContext = this.context;
     context.token = createToken(context, oneMinute * startHours, oneMinute * endHours);
   });
+
+Given('a token signed with a non-genuine certificate', function () {
+  const context: AuthoriseStepsContext = this.context;
+  context.token = createToken(context, undefined, undefined, testKeys.anotherCertificate.privateKey);
+});
+
+Given('a valid token but from a different issuer', function () {
+  const context: AuthoriseStepsContext = this.context;
+  context.token = createToken(context, undefined, undefined, undefined, uuid());
+});
+
+Given('a valid token but intended for another application', function () {
+  const context: AuthoriseStepsContext = this.context;
+  context.token = createToken(context, undefined, undefined, undefined, undefined, uuid());
+});
 
 Given('a methodArn of {string}', function (methodArn: string) {
   const context: AuthoriseStepsContext = this.context;
