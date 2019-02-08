@@ -8,7 +8,8 @@ import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
 import * as jsonwebtoken from 'jsonwebtoken';
 import * as testKeys from './testKeys';
 import * as authoriser from '../../src/functions/authoriser/framework/handler';
-import AdJwtVerifier, { JwksClient } from '../../src/functions/authoriser/application/AdJwtVerifier';
+import AdJwtVerifier, { JwksClient } from
+  '../../src/functions/authoriser/application/AdJwtVerifier';
 
 const uuid = () => crypto.randomBytes(16).toString('hex');
 const oneMinute = 60;
@@ -35,21 +36,21 @@ const createToken = (
   };
 
   return jsonwebtoken.sign(payload, privateKey || testKeys.ourCertificate.privateKey, signOptions);
-}
+};
 
 const base64Decode = (base64String: string): { [propName: string]: any } => {
   const buffer = new Buffer(base64String, 'base64');
   const json = buffer.toString('ascii');
   const object = JSON.parse(json);
   return object;
-}
+};
 
 const base64Encode = (object: any): string => {
   const json = JSON.stringify(object);
   const buffer = new Buffer(json);
-  const base64String = buffer.toString('base64');  
+  const base64String = buffer.toString('base64');
   return base64String;
-}
+};
 
 interface AuthoriseStepsContext {
   sinonSandbox: sinon.SinonSandbox;
@@ -66,7 +67,7 @@ interface AuthoriseStepsContext {
   result?: CustomAuthorizerResult;
 }
 
-After(function() {
+After(function () {
   const context: AuthoriseStepsContext = this.context;
   context.sinonSandbox.restore();
 });
@@ -76,14 +77,14 @@ Given('a custom authoriser lambda', function () {
     sut: authoriser.handler,
     sinonSandbox: sinon.createSandbox(),
     moqConsoleLog: Mock.ofInstance(console.log),
-    moqJwksClient: Mock.ofType<JwksClient>(),    
+    moqJwksClient: Mock.ofType<JwksClient>(),
     testAppId: uuid(),
     testIssuer: uuid(),
     testKid: uuid(),
     testTokenUniqueName: uuid(),
     testTokenSubject: uuid(),
     token: 'token-not-set',
-    methodArn: 'arn:aws:dummy:method:arn/stage/VERB/some/path'
+    methodArn: 'arn:aws:dummy:method:arn/stage/VERB/some/path',
   };
 
   // Override `console.log` with a Moq, so we can intercept calls to it,
@@ -97,15 +98,18 @@ Given('a custom authoriser lambda', function () {
 
   // Override the system under test's `AdJwtVerifier`, so we can use an AdJwtVerifier that performs
   // exactly as normal, other than it won't make any external web calls to get public keys.
-  const adJwtVerifier = new AdJwtVerifier(context.testAppId, context.testIssuer, context.moqJwksClient.object);  
+  const adJwtVerifier = new AdJwtVerifier(
+    context.testAppId,
+    context.testIssuer,
+    context.moqJwksClient.object);
   authoriser.setAdJwtVerifier(adJwtVerifier);
 
   // Setup out mock JwksClient so that it returns our test public key
   context.moqJwksClient
     .setup(x => x.getSigningKey(context.testKid))
     .returns(kid => Promise.resolve({
-      kid: kid,
-      rsaPublicKey: testKeys.ourCertificate.publicKey
+      kid,
+      rsaPublicKey: testKeys.ourCertificate.publicKey,
     }));
 });
 
@@ -116,14 +120,18 @@ Given('a valid token', function () {
 
 Given(
   'a token that is valid between {int} hours and {int} hours',
-  function(startHours: number, endHours: number) {
+  function (startHours: number, endHours: number) {
     const context: AuthoriseStepsContext = this.context;
     context.token = createToken(context, oneMinute * startHours, oneMinute * endHours);
   });
 
 Given('a token signed with a non-genuine certificate', function () {
   const context: AuthoriseStepsContext = this.context;
-  context.token = createToken(context, undefined, undefined, testKeys.anotherCertificate.privateKey);
+  context.token = createToken(
+    context,
+    undefined,
+    undefined,
+    testKeys.anotherCertificate.privateKey);
 });
 
 Given('a valid token but from a different issuer', function () {
@@ -157,7 +165,7 @@ Given('the token\'s header is changed', function () {
   const context: AuthoriseStepsContext = this.context;
 
   const parts = context.token.split('.');
-  
+
   const header = base64Decode(parts[0]);
   header['test'] = 'abc';
   parts[0] = base64Encode(header).replace('=', '');
@@ -204,14 +212,16 @@ Then('the result policy methodArn should be {string}', function (expectedResultM
   const context: AuthoriseStepsContext = this.context;
   const result = <CustomAuthorizerResult>context.result;
 
-  expect((<{ Resource: string }>result.policyDocument.Statement[0]).Resource).to.equal(expectedResultMethodArn);
+  expect((<{ Resource: string }>result.policyDocument.Statement[0]).Resource)
+    .to.equal(expectedResultMethodArn);
 });
 
 Then('the failed authorization reason should contain {string}', function (failureReason: string) {
   const context: AuthoriseStepsContext = this.context;
 
   context.moqConsoleLog.verify(
-    x => x(It.is<string>(
-      s => /Failed authorization\. Responding with Deny\./.test(s) && s.indexOf(failureReason) > -1)),
+    x => x(It.is<string>(s =>
+      /Failed authorization\. Responding with Deny\./.test(s) &&
+      s.indexOf(failureReason) > -1)),
     Times.once());
 });

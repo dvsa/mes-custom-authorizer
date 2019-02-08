@@ -24,7 +24,9 @@ describe('handler', () => {
       authorizationToken: '',
     };
 
-    spyOn(createAdJwtVerifier, 'default').and.returnValue(Promise.resolve(mockAdJwtVerifier.object));
+    spyOn(createAdJwtVerifier, 'default')
+      .and.returnValue(Promise.resolve(mockAdJwtVerifier.object));
+
     spyOn(console, 'log').and.callFake(moqConsoleLog.object);
   });
 
