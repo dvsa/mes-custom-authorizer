@@ -51,3 +51,10 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
     return createAuthResult('not-authorized', 'Deny', methodArn);
   }
 }
+
+/**
+ * Ability to explicitly set the AdJwtVerifier, for use by the tests.
+ */
+export async function setAdJwtVerifier(adJwtVerifierOverride: AdJwtVerifier) {
+  adJwtVerifier = adJwtVerifierOverride;
+}
