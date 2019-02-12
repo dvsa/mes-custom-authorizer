@@ -3,12 +3,22 @@ service: mes-custom-authoriser
 provider:
   name: aws
   runtime: nodejs8.10
+  environment:
+    AZURE_AD_TENANT_ID: 6c448d90-4ca1-4caf-ab59-0a2aa67d7801
+    AZURE_AD_CLIENT_ID: 09fdd68c-4f2f-45c2-be55-dd98104d4f74
 
 package:
   individually: true
 
 functions:
   authoriser:
+    handler: local/handler.handler
+    events:
+      - http:
+          path: 'authorizer'
+          method: get
+          authorizer: authorizerFunc 
+  authorizerFunc: 
     handler: src/functions/authoriser/framework/handler.handler
 
 custom:

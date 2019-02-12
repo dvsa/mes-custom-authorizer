@@ -51,7 +51,8 @@
     "package": "./package.sh",
     "security-scan": "git secrets --scan && git log -p | scanrepo",
     "test": "npm run compile && jasmine",
-    "comp-test-run": "cucumber-js component-tests/ --require build/component-tests/**/*.js"
+    "comp-test": "cucumber-js component-tests/ --require build/component-tests/**/*.js",
+    "start": "npm run compile && sls offline start"
   },
   "husky": {
     "hooks": {
