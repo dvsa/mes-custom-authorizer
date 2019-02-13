@@ -58,6 +58,9 @@ describe('handler', () => {
     const testVerifiedTokenPayload: VerifiedTokenPayload = {
       sub: 'test-subject',
       unique_name: 'test-unique_name',
+      'extn.employeeId': [
+        'test-extn.employeeId',
+      ],
     };
 
     mockAdJwtVerifier.setup(x => x.verifyJwt(It.isAny()))

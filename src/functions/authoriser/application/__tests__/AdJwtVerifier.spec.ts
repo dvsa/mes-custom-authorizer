@@ -23,7 +23,13 @@ describe('AdJwtVerifier', () => {
       .returns(() => Promise.resolve(testSigningKey));
 
     moqJwtVerify.setup(x => x(It.isAnyString(), It.isAnyString(), It.isAny()))
-      .returns(() => ({ sub: 'test-subject', unique_name: 'test-unique_name' }));
+      .returns(() => ({
+        sub: 'test-subject',
+        unique_name: 'test-unique_name',
+        'extn.employeeId': [
+          'employeeId',
+        ],
+      }));
 
     spyOn(jwt, 'decode').and.callFake(moqJwtDecode.object);
     spyOn(jwt, 'verify').and.callFake(moqJwtVerify.object);

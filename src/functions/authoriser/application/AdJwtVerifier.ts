@@ -13,6 +13,7 @@ export interface JwksClient {
 export interface VerifiedTokenPayload {
   readonly sub: string;
   readonly unique_name: string;
+  readonly 'extn.employeeId': string[];
 }
 
 export default class AdJwtVerifier {
