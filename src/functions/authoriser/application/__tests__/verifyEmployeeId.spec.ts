@@ -21,9 +21,8 @@ describe('verifyEmployeeId', () => {
   });
 
   describe('dynamo db get', () => {
-
     it('should throw an exception when no employeeId found in Users table', async () => {
-      aws.mock('DynamoDB.DocumentClient', 'get', () => ({}));
+      aws.mock('DynamoDB.DocumentClient', 'get', async () => ({}));
       const verifiedToken: VerifiedTokenPayload = {
         sub: 'sub',
         unique_name: 'unique_name',
@@ -57,7 +56,5 @@ describe('verifyEmployeeId', () => {
         await verifyEmployeeId(verifiedToken);
       }).not.toThrow();
     });
-
   });
-
 });
