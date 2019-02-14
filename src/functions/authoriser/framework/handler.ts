@@ -1,16 +1,15 @@
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
 
-import AdJwtVerifier, { VerifiedTokenPayload } from '../application/AdJwtVerifier';
+import AdJwtVerifier from '../application/AdJwtVerifier';
 import * as transformMethodArn from '../application/transformMethodArn';
 import createAdJwtVerifier from './createAdJwtVerifier';
 import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
-import { verifyEmployeeId } from './verifyEmployeeId';
+import verifyEmployeeId from '../application/verifyEmployeeId';
 
 type Effect = 'Allow' | 'Deny';
 let adJwtVerifier: AdJwtVerifier | null = null;
 
 export async function handler(event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> {
-
   if (adJwtVerifier === null) {
     adJwtVerifier = await createAdJwtVerifier();
   }
@@ -20,14 +19,13 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
 
   const methodArn = transformMethodArn.toAllVerbsAndAllResources(event.methodArn);
 
-  return await adJwtVerifier
-    .verifyJwt(token)
-    .then((verifiedToken: VerifiedTokenPayload) =>
-      verifyEmployeeId(verifiedToken))
-    .then((verifiedToken: VerifiedTokenPayload) =>
-      createAuthResult(verifiedToken.unique_name, 'Allow', methodArn))
-    .catch((err: any) =>
-      handleError(err, event, methodArn));
+  try {
+    const verifiedToken = await adJwtVerifier.verifyJwt(token);
+    await verifyEmployeeId(verifiedToken);
+    return createAuthResult(verifiedToken.unique_name, 'Allow', methodArn);
+  } catch (err) {
+    return handleError(err, event, methodArn);
+  }
 }
 
 function createAuthResult(

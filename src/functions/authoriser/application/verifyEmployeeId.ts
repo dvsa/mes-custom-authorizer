@@ -1,16 +1,12 @@
 import { DynamoDB } from 'aws-sdk';
+import { VerifiedTokenPayload } from '../application/AdJwtVerifier';
 
-export async function verifyEmployeeId(verifiedToken: any): Promise<any> {
+export default async function verifyEmployeeId(verifiedToken: VerifiedTokenPayload): Promise<void> {
+  if (verifiedToken['extn.employeeId'].length === 0) {
+    throw 'Verified Token does not have employeeId';
+  }
+
   const employeeId = verifiedToken['extn.employeeId'][0];
-
-  const createDynamoClient = () => {
-    return process.env.IS_OFFLINE
-      ? new DynamoDB.DocumentClient({
-        region: process.env.AWS_REGION,
-        endpoint: 'http://localhost:8000',
-      })
-      : new DynamoDB.DocumentClient();
-  };
 
   const ddb = createDynamoClient();
   const result = await ddb.get({
@@ -23,8 +19,15 @@ export async function verifyEmployeeId(verifiedToken: any): Promise<any> {
   if (!result || !result.Item) {
     throw 'There was no employeeId in Users table';
   }
+}
 
-  return verifiedToken;
+function createDynamoClient() {
+  return process.env.IS_OFFLINE
+    ? new DynamoDB.DocumentClient({
+      region: process.env.AWS_REGION,
+      endpoint: 'http://localhost:8000',
+    })
+    : new DynamoDB.DocumentClient();
 }
 
 function getUsersTableName(): string {

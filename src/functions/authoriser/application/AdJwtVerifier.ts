@@ -41,7 +41,7 @@ export default class AdJwtVerifier {
       throw new Error(`No public RSA key for kid: ${kid}`);
     }
 
-    return verify(token, rsaPublicKey, {
+    return <VerifiedTokenPayload>verify(token, rsaPublicKey, {
       audience: this.applicationId,
       issuer: this.issuer,
       clockTolerance: 30, /* seconds */

@@ -3,10 +3,12 @@ import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
 import AdJwtVerifier, { VerifiedTokenPayload } from '../../application/AdJwtVerifier';
 import { handler } from '../handler';
 import * as createAdJwtVerifier from '../createAdJwtVerifier';
+import * as verifyEmployeeId from '../../application/verifyEmployeeId';
 
 describe('handler', () => {
   const moqConsoleLog = Mock.ofInstance(console.log);
   const mockAdJwtVerifier = Mock.ofType<AdJwtVerifier>();
+  const mockVerifyEmployeeId = Mock.ofInstance(verifyEmployeeId.default);
 
   let testCustomAuthorizerEvent: CustomAuthorizerEvent;
 
@@ -15,8 +17,11 @@ describe('handler', () => {
   beforeEach(() => {
     moqConsoleLog.reset();
     mockAdJwtVerifier.reset();
+    mockVerifyEmployeeId.reset();
 
     mockAdJwtVerifier.setup((x: any) => x.then).returns(() => undefined); // TypeMoq limitation
+    mockVerifyEmployeeId.setup(x => x(It.isAny()))
+      .returns(() => Promise.resolve());
 
     testCustomAuthorizerEvent = {
       type: 'type',
@@ -28,6 +33,7 @@ describe('handler', () => {
       .and.returnValue(Promise.resolve(mockAdJwtVerifier.object));
 
     spyOn(console, 'log').and.callFake(moqConsoleLog.object);
+    spyOn(verifyEmployeeId, 'default').and.callFake(mockVerifyEmployeeId.object);
   });
 
   it('should throw an error if authorizationToken is not set', async () => {
@@ -58,9 +64,7 @@ describe('handler', () => {
     const testVerifiedTokenPayload: VerifiedTokenPayload = {
       sub: 'test-subject',
       unique_name: 'test-unique_name',
-      'extn.employeeId': [
-        'test-extn.employeeId',
-      ],
+      'extn.employeeId': ['12345678'],
     };
 
     mockAdJwtVerifier.setup(x => x.verifyJwt(It.isAny()))
@@ -70,6 +74,10 @@ describe('handler', () => {
     const result = await sut(testCustomAuthorizerEvent);
 
     // ASSERT
+    moqConsoleLog.verify(
+      x => x(It.isAny()),
+      Times.never());
+
     expect(result.policyDocument.Statement[0].Effect).toEqual('Allow');
     expect((<{ Resource: string }>result.policyDocument.Statement[0]).Resource)
       .toEqual('arn:aws:execute-api:region:account-id:api-id/stage-name/*/*');
