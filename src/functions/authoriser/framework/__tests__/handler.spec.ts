@@ -5,7 +5,6 @@ import { handler } from '../handler';
 import * as createAdJwtVerifier from '../createAdJwtVerifier';
 
 describe('handler', () => {
-  const moqCreateAdJwtVerifier = Mock.ofInstance(createAdJwtVerifier.default);
   const moqConsoleLog = Mock.ofInstance(console.log);
   const mockAdJwtVerifier = Mock.ofType<AdJwtVerifier>();
 
@@ -14,12 +13,8 @@ describe('handler', () => {
   const sut = handler;
 
   beforeEach(() => {
-    moqCreateAdJwtVerifier.reset();
     moqConsoleLog.reset();
     mockAdJwtVerifier.reset();
-
-    moqCreateAdJwtVerifier.setup(x => x())
-      .returns(() => Promise.resolve(mockAdJwtVerifier.object));
 
     mockAdJwtVerifier.setup((x: any) => x.then).returns(() => undefined); // TypeMoq limitation
 
@@ -29,7 +24,9 @@ describe('handler', () => {
       authorizationToken: '',
     };
 
-    spyOn(createAdJwtVerifier, 'default').and.callFake(moqCreateAdJwtVerifier.object);
+    spyOn(createAdJwtVerifier, 'default')
+      .and.returnValue(Promise.resolve(mockAdJwtVerifier.object));
+
     spyOn(console, 'log').and.callFake(moqConsoleLog.object);
   });
 
