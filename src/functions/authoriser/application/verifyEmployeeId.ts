@@ -23,10 +23,7 @@ export default async function verifyEmployeeId(verifiedToken: VerifiedTokenPaylo
 
 function createDynamoClient() {
   return process.env.IS_OFFLINE
-    ? new DynamoDB.DocumentClient({
-      region: process.env.AWS_REGION,
-      endpoint: 'http://localhost:8000',
-    })
+    ? new DynamoDB.DocumentClient({ endpoint: 'http://localhost:8000' })
     : new DynamoDB.DocumentClient();
 }
 
