@@ -4,11 +4,13 @@
     "strict": true,
     "allowJs": false,
     "lib": ["es2017"],
-    "target": "es5",
+    "target": "es2017",
     "types" : [
       "node",
       "jasmine",
     ],
+    "module": "commonjs",
+    "moduleResolution": "node",
     "experimentalDecorators": true
   },
   "include": [
