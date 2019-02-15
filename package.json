@@ -52,8 +52,8 @@
     "lint": "tslint --project tslint.json",
     "package": "./package.sh",
     "security-scan": "git secrets --scan && git log -p | scanrepo",
-    "test": "npm run compile && jasmine",
     "comp-test": "cucumber-js component-tests/ --require build/component-tests/**/*.js",
+    "test": "npm run compile && jasmine && npm run comp-test",
     "start": "npm run compile && sls dynamodb install && sls offline start"
   },
   "husky": {
