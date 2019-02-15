@@ -40,7 +40,7 @@ custom:
 
 resources:
   Resources:
-    penaltyDocuments:
+    usersDocuments:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: ${self:provider.environment.USERS_DDB_TABLE_NAME}
