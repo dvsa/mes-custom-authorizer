@@ -15,4 +15,5 @@ npm-debug.log
 *.tar
 *.zip
 dist
+.dynamodb
 .serverless/

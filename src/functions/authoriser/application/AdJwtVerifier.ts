@@ -13,6 +13,7 @@ export interface JwksClient {
 export interface VerifiedTokenPayload {
   readonly sub: string;
   readonly unique_name: string;
+  readonly 'extn.employeeId': string[];
 }
 
 export default class AdJwtVerifier {
@@ -40,7 +41,7 @@ export default class AdJwtVerifier {
       throw new Error(`No public RSA key for kid: ${kid}`);
     }
 
-    return verify(token, rsaPublicKey, {
+    return <VerifiedTokenPayload>verify(token, rsaPublicKey, {
       audience: this.applicationId,
       issuer: this.issuer,
       clockTolerance: 30, /* seconds */

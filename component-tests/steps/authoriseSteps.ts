@@ -1,10 +1,11 @@
-import { Given, When, Then, After } from 'cucumber';
+import { Given, When, Then, After, Before } from 'cucumber';
 import { Mock, It, Times, IMock } from 'typemoq';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as crypto from 'crypto';
 import { Buffer } from 'buffer';
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
+import * as aws from 'aws-sdk-mock';
 import * as jsonwebtoken from 'jsonwebtoken';
 import * as authoriser from '../../src/functions/authoriser/framework/handler';
 import AdJwtVerifier, { JwksClient } from
@@ -24,6 +25,10 @@ interface AuthoriseStepsContext {
   methodArn: string;
   result?: CustomAuthorizerResult;
 }
+
+Before(() => {
+  aws.restore('DynamoDB.DocumentClient');
+});
 
 After(function () {
   const context: AuthoriseStepsContext = this.context;
@@ -72,6 +77,28 @@ Given('a custom authoriser lambda', function () {
 });
 
 Given('a valid token', function () {
+  const context: AuthoriseStepsContext = this.context;
+  context.token = createToken(context);
+});
+
+Given('a valid token with employee id of {string}', function (employeeId: string) {
+  const context: AuthoriseStepsContext = this.context;
+
+  // using undefined for the already existing paramters which is used in other places.
+  context.token = createToken(
+    context, undefined, undefined, undefined, undefined, undefined, employeeId);
+});
+
+Given('an employee with id of {string} exists', (employeeId: string) => {
+  aws.mock(
+    'DynamoDB.DocumentClient', 'get', async params => ({ Item: { staffNumber: employeeId } }));
+});
+
+Given('an employee with id of {string} does not exist', (employeeId: string) => {
+  aws.mock('DynamoDB.DocumentClient', 'get', async params => ({}));
+});
+
+Given('a valid token with no employee id', function () {
   const context: AuthoriseStepsContext = this.context;
   context.token = createToken(context);
 });
@@ -154,6 +181,11 @@ Then('the result should Allow access', function () {
   const context: AuthoriseStepsContext = this.context;
   const result = <CustomAuthorizerResult>context.result;
 
+  context.moqConsoleLog.verify(
+    x => x(It.is<string>(s =>
+      /Failed authorization/.test(s))),
+    Times.never());
+
   expect(result.policyDocument.Statement[0].Effect).to.equal('Allow');
   expect(result.principalId).to.equal(context.testTokenUniqueName);
 });
@@ -195,9 +227,11 @@ const createToken = (
   expiresIn?: number,
   privateKey?: string,
   issuer?: string,
-  audience?: string): string => {
+  audience?: string,
+  employeeId?: string): string => {
   const payload = {
     unique_name: context.testTokenUniqueName,
+    'extn.employeeId': employeeId ? [employeeId] : undefined,
   };
 
   const signOptions: jsonwebtoken.SignOptions = {
