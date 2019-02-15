@@ -227,7 +227,6 @@ const base64Encode = (object: any): string => {
   return base64String;
 };
 
-
 function getTestKeys() {
   // These private keys were generated specifically for exclusive use by these component tests.
   // This is committed to a public repository, so can be seen by anybody in the universe.
