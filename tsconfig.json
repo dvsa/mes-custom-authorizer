@@ -9,6 +9,8 @@
       "node",
       "jasmine",
     ],
+    "module": "commonjs",
+    "moduleResolution": "node",
     "experimentalDecorators": true
   },
   "include": [
