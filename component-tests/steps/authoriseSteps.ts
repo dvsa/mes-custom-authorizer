@@ -10,49 +10,6 @@ import * as authoriser from '../../src/functions/authoriser/framework/handler';
 import AdJwtVerifier, { JwksClient } from
   '../../src/functions/authoriser/application/AdJwtVerifier';
 
-const testKeys = getTestKeys();
-
-const uuid = () => crypto.randomBytes(16).toString('hex');
-const oneMinute = 60;
-
-const createToken = (
-  context: AuthoriseStepsContext,
-  notBefore?: number,
-  expiresIn?: number,
-  privateKey?: string,
-  issuer?: string,
-  audience?: string): string => {
-  const payload = {
-    unique_name: context.testTokenUniqueName,
-  };
-
-  const signOptions: jsonwebtoken.SignOptions = {
-    algorithm: 'RS256',
-    keyid: context.testKid,
-    audience: audience || context.testAppId,
-    issuer: issuer || context.testIssuer,
-    subject: context.testTokenSubject,
-    notBefore: notBefore || -oneMinute,
-    expiresIn: expiresIn || (oneMinute * 5),
-  };
-
-  return jsonwebtoken.sign(payload, privateKey || testKeys.ourCertificate.privateKey, signOptions);
-};
-
-const base64Decode = (base64String: string): { [propName: string]: any } => {
-  const buffer = new Buffer(base64String, 'base64');
-  const json = buffer.toString('ascii');
-  const object = JSON.parse(json);
-  return object;
-};
-
-const base64Encode = (object: any): string => {
-  const json = JSON.stringify(object);
-  const buffer = new Buffer(json);
-  const base64String = buffer.toString('base64');
-  return base64String;
-};
-
 interface AuthoriseStepsContext {
   sinonSandbox: sinon.SinonSandbox;
   sut: (event: CustomAuthorizerEvent) => Promise<CustomAuthorizerResult>;
@@ -226,6 +183,50 @@ Then('the failed authorization reason should contain {string}', function (failur
       s.indexOf(failureReason) > -1)),
     Times.once());
 });
+
+const testKeys = getTestKeys();
+
+const uuid = () => crypto.randomBytes(16).toString('hex');
+const oneMinute = 60;
+
+const createToken = (
+  context: AuthoriseStepsContext,
+  notBefore?: number,
+  expiresIn?: number,
+  privateKey?: string,
+  issuer?: string,
+  audience?: string): string => {
+  const payload = {
+    unique_name: context.testTokenUniqueName,
+  };
+
+  const signOptions: jsonwebtoken.SignOptions = {
+    algorithm: 'RS256',
+    keyid: context.testKid,
+    audience: audience || context.testAppId,
+    issuer: issuer || context.testIssuer,
+    subject: context.testTokenSubject,
+    notBefore: notBefore || -oneMinute,
+    expiresIn: expiresIn || (oneMinute * 5),
+  };
+
+  return jsonwebtoken.sign(payload, privateKey || testKeys.ourCertificate.privateKey, signOptions);
+};
+
+const base64Decode = (base64String: string): { [propName: string]: any } => {
+  const buffer = new Buffer(base64String, 'base64');
+  const json = buffer.toString('ascii');
+  const object = JSON.parse(json);
+  return object;
+};
+
+const base64Encode = (object: any): string => {
+  const json = JSON.stringify(object);
+  const buffer = new Buffer(json);
+  const base64String = buffer.toString('base64');
+  return base64String;
+};
+
 
 function getTestKeys() {
   // These private keys were generated specifically for exclusive use by these component tests.
