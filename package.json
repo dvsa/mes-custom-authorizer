@@ -50,12 +50,12 @@
     "lint": "tslint --project tslint.json",
     "package": "./package.sh",
     "security-scan": "git secrets --scan && git log -p | scanrepo",
-    "test": "npm run compile && jasmine && npm run comp-test-run",
+    "test": "npm run compile && jasmine",
     "comp-test-run": "cucumber-js component-tests/ --require build/component-tests/**/*.js"
   },
   "husky": {
     "hooks": {
-      "pre-push": "npm run security-scan && npm run lint && npm run test"
+      "pre-push": "npm run security-scan && npm run lint && npm test"
     }
   },
   "bugs": {
