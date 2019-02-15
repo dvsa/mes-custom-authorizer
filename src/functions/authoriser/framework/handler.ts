@@ -21,7 +21,10 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
 
   try {
     const verifiedToken = await adJwtVerifier.verifyJwt(token);
-    await verifyEmployeeId(verifiedToken);
+    const result = await verifyEmployeeId(verifiedToken);
+    if (!result) {
+      return handleError('The employee id was not found', event, methodArn);
+    }
     return createAuthResult(verifiedToken.unique_name, 'Allow', methodArn);
   } catch (err) {
     return handleError(err, event, methodArn);

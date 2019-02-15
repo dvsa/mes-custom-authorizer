@@ -25,7 +25,7 @@ Feature: As a user of the web API, I want to authenticate and authorize with the
         And an employee with id of "12345678" does not exist
         When the token is verified
         Then the result should Deny access
-        And the failed authorization reason should contain "There was no employeeId in Users table"
+        And the failed authorization reason should contain "The employee id was not found"
 
     Scenario: Valid token but employee id does not exist in token, should Deny access
         Given a valid token with no employee id

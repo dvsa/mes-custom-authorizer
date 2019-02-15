@@ -21,7 +21,7 @@ describe('handler', () => {
 
     mockAdJwtVerifier.setup((x: any) => x.then).returns(() => undefined); // TypeMoq limitation
     mockVerifyEmployeeId.setup(x => x(It.isAny()))
-      .returns(() => Promise.resolve());
+      .returns(() => Promise.resolve(true));
 
     testCustomAuthorizerEvent = {
       type: 'type',

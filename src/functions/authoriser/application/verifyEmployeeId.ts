@@ -1,7 +1,8 @@
 import { DynamoDB } from 'aws-sdk';
 import { VerifiedTokenPayload } from '../application/AdJwtVerifier';
 
-export default async function verifyEmployeeId(verifiedToken: VerifiedTokenPayload): Promise<void> {
+export default async function verifyEmployeeId(
+  verifiedToken: VerifiedTokenPayload): Promise<boolean> {
   if (!verifiedToken['extn.employeeId'] || verifiedToken['extn.employeeId'].length === 0) {
     throw 'Verified Token does not have employeeId';
   }
@@ -17,14 +18,18 @@ export default async function verifyEmployeeId(verifiedToken: VerifiedTokenPaylo
   }).promise();
 
   if (!result || !result.Item) {
-    throw 'There was no employeeId in Users table';
+    return false;
   }
+
+  return true;
 }
 
 function createDynamoClient() {
   return process.env.IS_OFFLINE
     ? new DynamoDB.DocumentClient({ endpoint: 'http://localhost:8000' })
     : new DynamoDB.DocumentClient();
+
+  
 }
 
 function getUsersTableName(): string {

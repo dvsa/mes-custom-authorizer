@@ -36,7 +36,7 @@ describe('verifyEmployeeId', () => {
       try {
         await verifyEmployeeId(verifiedToken);
       } catch (err) {
-        expect(err).toBe('There was no employeeId in Users table');
+        expect(err).toBe('The employee id was not found');
       }
     });
 
