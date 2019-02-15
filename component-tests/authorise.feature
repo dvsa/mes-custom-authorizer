@@ -5,18 +5,33 @@ Feature: As a user of the web API, I want to authenticate and authorize with the
         Given a custom authoriser lambda
 
     Scenario: Valid token, should Allow access and set methodArn to access all HTTP verbs and resources after the stage for a generic methodArn
-        Given a valid token
+        Given a valid token with employee id of "12345678"
         And a methodArn of "arn:aws:srvc:region:account:app/stage/verb/some/path"
+        And an employee with id of "12345678" exists
         When the token is verified
         Then the result should Allow access
         And the result policy methodArn should be "arn:aws:srvc:region:account:app/stage/*/*"
 
     Scenario: Valid token, should Allow access and set methodArn to access all HTTP verbs and resources after the stage
-        Given a valid token
+        Given a valid token with employee id of "12345678"
         And a methodArn of "arn:aws:execute-api:us-east-1:3631894:hj389a1c0/stage/GET/journal/10023488/personal"
+        And an employee with id of "12345678" exists
         When the token is verified
         Then the result should Allow access
         And the result policy methodArn should be "arn:aws:execute-api:us-east-1:3631894:hj389a1c0/stage/*/*"
+
+    Scenario: Valid token but employee id does not exist in data store, should Deny access
+        Given a valid token with employee id of "12345678"
+        And an employee with id of "12345678" does not exist
+        When the token is verified
+        Then the result should Deny access
+        And the failed authorization reason should contain "There was no employeeId in Users table"
+
+    Scenario: Valid token but employee id does not exist in token, should Deny access
+        Given a valid token with no employee id
+        When the token is verified
+        Then the result should Deny access
+        And the failed authorization reason should contain "Verified Token does not have employeeId"
 
     Scenario: Invalid signature due to modified token payload, should Deny access
         Given a valid token

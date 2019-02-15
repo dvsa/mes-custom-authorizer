@@ -2,7 +2,7 @@ import { DynamoDB } from 'aws-sdk';
 import { VerifiedTokenPayload } from '../application/AdJwtVerifier';
 
 export default async function verifyEmployeeId(verifiedToken: VerifiedTokenPayload): Promise<void> {
-  if (verifiedToken['extn.employeeId'].length === 0) {
+  if (!verifiedToken['extn.employeeId'] || verifiedToken['extn.employeeId'].length === 0) {
     throw 'Verified Token does not have employeeId';
   }
 
