@@ -12,8 +12,6 @@ ignore_func="authoriserLocal"
 mkdir -p ${artefact_dir}
 functions=$(npx yaml2json serverless.yml | jq -r '.functions | keys | .[]')
 for func_name in ${functions}; do
-  echo $func_name
-  echo $ignore_func
   if [ "$func_name"=="$ignore_func" ]; then
   continue
   fi
