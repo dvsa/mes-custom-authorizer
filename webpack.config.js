@@ -2,6 +2,7 @@ const path = require('path');
 const YAML = require('yamljs');
 
 const allEntries = Object.keys(YAML.load('serverless.yml').functions)
+  .filter(func => func !== 'authoriserLocal')
   .reduce((entryObj, functionName) => {
     entryObj[functionName] = `.${path.sep}${path.join('src', 'functions', functionName, 'framework', 'handler.ts')}`
     return entryObj;
