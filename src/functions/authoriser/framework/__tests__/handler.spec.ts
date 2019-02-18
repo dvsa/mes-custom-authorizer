@@ -1,12 +1,13 @@
 import { Mock, It, Times } from 'typemoq';
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
+import { Logger } from 'winston';
 import AdJwtVerifier, { VerifiedTokenPayload } from '../../application/AdJwtVerifier';
-import { handler } from '../handler';
+import { handler, setFailedAuthLogger } from '../handler';
 import * as createAdJwtVerifier from '../createAdJwtVerifier';
 import * as verifyEmployeeId from '../../application/verifyEmployeeId';
 
 describe('handler', () => {
-  const moqConsoleLog = Mock.ofInstance(console.log);
+  const moqLogger = Mock.ofType<Logger>();
   const mockAdJwtVerifier = Mock.ofType<AdJwtVerifier>();
   const mockVerifyEmployeeId = Mock.ofInstance(verifyEmployeeId.default);
 
@@ -15,7 +16,7 @@ describe('handler', () => {
   const sut = handler;
 
   beforeEach(() => {
-    moqConsoleLog.reset();
+    moqLogger.reset();
     mockAdJwtVerifier.reset();
     mockVerifyEmployeeId.reset();
 
@@ -32,8 +33,9 @@ describe('handler', () => {
     spyOn(createAdJwtVerifier, 'default')
       .and.returnValue(Promise.resolve(mockAdJwtVerifier.object));
 
-    spyOn(console, 'log').and.callFake(moqConsoleLog.object);
     spyOn(verifyEmployeeId, 'default').and.callFake(mockVerifyEmployeeId.object);
+
+    setFailedAuthLogger(moqLogger.object);
   });
 
   it('should throw an error if authorizationToken is not set', async () => {
@@ -74,9 +76,8 @@ describe('handler', () => {
     const result = await sut(testCustomAuthorizerEvent);
 
     // ASSERT
-    moqConsoleLog.verify(
-      x => x(It.isAny()),
-      Times.never());
+    moqLogger.verify(x => x.error(It.isAny()), Times.never());
+    moqLogger.verify(x => x.error(It.isAny(), It.isAny()), Times.never());
 
     expect(result.policyDocument.Statement[0].Effect).toEqual('Allow');
     expect((<{ Resource: string }>result.policyDocument.Statement[0]).Resource)
@@ -105,8 +106,10 @@ describe('handler', () => {
 
     mockAdJwtVerifier.verify(x => x.verifyJwt('example-token'), Times.once());
 
-    moqConsoleLog.verify(
-      x => x(It.is<string>(s => /Failed authorization\. Responding with Deny\./.test(s))),
+    moqLogger.verify(
+      x => x.error(
+        It.is<string>(s => /Failed authorization\. Responding with Deny\./.test(s)),
+        It.is<any>(o => /Example invalid token error/.test(o.failedAuthReason))),
       Times.once());
   });
 });

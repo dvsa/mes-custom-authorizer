@@ -1,13 +1,22 @@
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
-
+import { Logger } from 'winston';
 import AdJwtVerifier from '../application/AdJwtVerifier';
 import * as transformMethodArn from '../application/transformMethodArn';
+import createFailedAuthLogger from './createFailedAuthLogger';
 import createAdJwtVerifier from './createAdJwtVerifier';
 import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
 import verifyEmployeeId from '../application/verifyEmployeeId';
 
 type Effect = 'Allow' | 'Deny';
+
 let adJwtVerifier: AdJwtVerifier | null = null;
+let failedAuthLogger: Logger = createFailedAuthLogger();
+
+process.on('exit', () => {
+  if (failedAuthLogger !== null) {
+    failedAuthLogger.end();
+  }
+});
 
 export async function handler(event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> {
   if (adJwtVerifier === null) {
@@ -47,13 +56,12 @@ function createAuthResult(
 }
 
 function handleError(err: any, event: CustomAuthorizerEvent, methodArn: string) {
-  const failedAuthLogMessage = JSON.stringify({
-    message: 'Failed authorization. Responding with Deny.',
-    reason: err && err.toString ? err.toString() : null,
+  const failedAuthDetails = {
+    failedAuthReason: err && err.toString ? err.toString() : null,
     timestamp: new Date(),
     err, event, // tslint:disable-line
-  });
-  console.log(failedAuthLogMessage);
+  };
+  failedAuthLogger.error('Failed authorization. Responding with Deny.', failedAuthDetails);
   return createAuthResult('not-authorized', 'Deny', methodArn);
 }
 
@@ -62,4 +70,11 @@ function handleError(err: any, event: CustomAuthorizerEvent, methodArn: string) 
  */
 export async function setAdJwtVerifier(adJwtVerifierOverride: AdJwtVerifier) {
   adJwtVerifier = adJwtVerifierOverride;
+}
+
+/**
+ * Ability to explicitly set the Failed Authorisation Logger, for use by the tests.
+ */
+export async function setFailedAuthLogger(failedAuthLoggerOverride: Logger) {
+  failedAuthLogger = failedAuthLoggerOverride;
 }
