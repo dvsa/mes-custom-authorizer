@@ -1,5 +1,5 @@
 import { createLogger, transports, format, Logger } from 'winston';
-import { CloudWatchTransport } from 'winston-aws-cloudwatch';
+import CloudWatchTransport = require('winston-aws-cloudwatch');
 import { randomBytes } from 'crypto';
 
 export const uniqueLogStreamName = () => {

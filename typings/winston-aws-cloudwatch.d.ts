@@ -1,7 +1,7 @@
 declare module 'winston-aws-cloudwatch' {
   import * as Transport from "winston-transport";
 
-  export interface CloudWatchTransportOptions {
+  interface CloudWatchTransportOptions {
     logGroupName: string;
     logStreamName: string;
     createLogGroup?: boolean;
@@ -16,7 +16,9 @@ declare module 'winston-aws-cloudwatch' {
     };
   }
 
-  export class CloudWatchTransport extends Transport {
+  class CloudWatchTransport extends Transport {
     constructor(options: CloudWatchTransportOptions);
   }
+
+  export = CloudWatchTransport
 }
