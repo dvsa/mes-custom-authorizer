@@ -30,7 +30,7 @@ After(function () {
   const context: AuthoriseStepsContext = this.context;
   if (context.restoreDynamoDBDocumentClient) {
     aws.restore('DynamoDB.DocumentClient');
-  }  
+  }
 });
 
 Given('a custom authoriser lambda', function () {
