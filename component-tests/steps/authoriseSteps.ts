@@ -23,10 +23,14 @@ interface AuthoriseStepsContext {
   token: string;
   methodArn: string;
   result?: CustomAuthorizerResult;
+  restoreDynamoDBDocumentClient?: boolean;
 }
 
-Before(() => {
-  aws.restore('DynamoDB.DocumentClient');
+After(function () {
+  const context: AuthoriseStepsContext = this.context;
+  if (context.restoreDynamoDBDocumentClient) {
+    aws.restore('DynamoDB.DocumentClient');
+  }  
 });
 
 Given('a custom authoriser lambda', function () {
@@ -76,13 +80,19 @@ Given('a valid token with employee id of {string}', function (employeeId: string
     context, undefined, undefined, undefined, undefined, undefined, employeeId);
 });
 
-Given('an employee with id of {string} exists', (employeeId: string) => {
+Given('an employee with id of {string} exists', function (employeeId: string) {
   aws.mock(
     'DynamoDB.DocumentClient', 'get', async params => ({ Item: { staffNumber: employeeId } }));
+
+  const context: AuthoriseStepsContext = this.context;
+  context.restoreDynamoDBDocumentClient = true;
 });
 
-Given('an employee with id of {string} does not exist', (employeeId: string) => {
+Given('an employee with id of {string} does not exist', function (employeeId: string) {
   aws.mock('DynamoDB.DocumentClient', 'get', async params => ({}));
+
+  const context: AuthoriseStepsContext = this.context;
+  context.restoreDynamoDBDocumentClient = true;
 });
 
 Given('a valid token with no employee id', function () {
@@ -236,7 +246,7 @@ const createToken = (
 };
 
 const base64Decode = (base64String: string): { [propName: string]: any } => {
-  const buffer = new Buffer(base64String, 'base64');
+  const buffer = Buffer.from(base64String, 'base64');
   const json = buffer.toString('ascii');
   const object = JSON.parse(json);
   return object;
@@ -244,7 +254,7 @@ const base64Decode = (base64String: string): { [propName: string]: any } => {
 
 const base64Encode = (object: any): string => {
   const json = JSON.stringify(object);
-  const buffer = new Buffer(json);
+  const buffer = Buffer.from(json);
   const base64String = buffer.toString('base64');
   return base64String;
 };
