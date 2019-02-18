@@ -20,7 +20,7 @@ functions:
           path: 'authoriser'
           method: get
           authorizer: authoriser
-  authoriser: 
+  authoriser:
     handler: src/functions/authoriser/framework/handler.handler
 
 custom:
