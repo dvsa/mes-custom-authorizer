@@ -15,12 +15,21 @@ export const uniqueLogStreamName = (loggerName: string) => {
   return `${loggerName}-${year}-${month}-${day}-${randomUuid}`;
 };
 
+function ignoreResourceAlreadyExistsException(err: any) {
+  if ((err.errorType || err.code) !== 'ResourceAlreadyExistsException') {
+    throw err;
+  }
+}
+
 async function createCloudWatchLogger(logGroupName: string, loggerName: string) {
   const cloudWatchLogs = new CloudWatchLogs();
   const logStreamName = uniqueLogStreamName(loggerName);
 
-  await cloudWatchLogs.createLogGroup({ logGroupName }).promise();
-  await cloudWatchLogs.createLogStream({ logGroupName, logStreamName }).promise();
+  await cloudWatchLogs.createLogGroup({ logGroupName }).promise()
+    .catch(err => ignoreResourceAlreadyExistsException(err));
+
+  await cloudWatchLogs.createLogStream({ logGroupName, logStreamName }).promise()
+    .catch(err => ignoreResourceAlreadyExistsException(err));
 
   let sequenceToken: CloudWatchLogs.SequenceToken | undefined = undefined;
 
