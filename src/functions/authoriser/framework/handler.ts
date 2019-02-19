@@ -1,8 +1,7 @@
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
-import { Logger } from 'winston';
 import AdJwtVerifier from '../application/AdJwtVerifier';
 import * as transformMethodArn from '../application/transformMethodArn';
-import createFailedAuthLogger from './createFailedAuthLogger';
+import { createLogger, Logger } from './createLogger';
 import createAdJwtVerifier from './createAdJwtVerifier';
 import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
 import verifyEmployeeId from '../application/verifyEmployeeId';
@@ -10,13 +9,7 @@ import verifyEmployeeId from '../application/verifyEmployeeId';
 type Effect = 'Allow' | 'Deny';
 
 let adJwtVerifier: AdJwtVerifier | null = null;
-let failedAuthLogger: Logger = createFailedAuthLogger();
-
-process.on('exit', () => {
-  if (failedAuthLogger !== null) {
-    failedAuthLogger.end();
-  }
-});
+let failedAuthLogger: Logger | null = null;
 
 export async function handler(event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> {
   if (adJwtVerifier === null) {
@@ -55,13 +48,18 @@ function createAuthResult(
   };
 }
 
-function handleError(err: any, event: CustomAuthorizerEvent, methodArn: string) {
+async function handleError(err: any, event: CustomAuthorizerEvent, methodArn: string) {
   const failedAuthDetails = {
     failedAuthReason: err && err.toString ? err.toString() : null,
     timestamp: new Date(),
     err, event, // tslint:disable-line
   };
-  failedAuthLogger.error('Failed authorization. Responding with Deny.', failedAuthDetails);
+
+  if (failedAuthLogger === null) {
+    failedAuthLogger = await createLogger('FailedAuthLogger');
+  }
+  await failedAuthLogger('Failed authorization. Responding with Deny.', 'error', failedAuthDetails);
+
   return createAuthResult('not-authorized', 'Deny', methodArn);
 }
 

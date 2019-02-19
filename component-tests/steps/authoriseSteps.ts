@@ -1,19 +1,19 @@
-import { Given, When, Then, After, Before } from 'cucumber';
+import { Given, When, Then, After } from 'cucumber';
 import { Mock, It, Times, IMock } from 'typemoq';
 import { expect } from 'chai';
 import * as crypto from 'crypto';
 import { Buffer } from 'buffer';
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
-import { Logger } from 'winston';
 import * as aws from 'aws-sdk-mock';
 import * as jsonwebtoken from 'jsonwebtoken';
 import * as authoriser from '../../src/functions/authoriser/framework/handler';
+import { Logger } from '../../src/functions/authoriser/framework/createLogger';
 import AdJwtVerifier, { JwksClient } from
   '../../src/functions/authoriser/application/AdJwtVerifier';
 
 interface AuthoriseStepsContext {
   sut: (event: CustomAuthorizerEvent) => Promise<CustomAuthorizerResult>;
-  moqLogger: IMock<Logger>;
+  moqFailedAuthLogger: IMock<Logger>;
   moqJwksClient: IMock<JwksClient>;
   testAppId: string;
   testIssuer: string;
@@ -36,7 +36,7 @@ After(function () {
 Given('a custom authoriser lambda', function () {
   const context: AuthoriseStepsContext = this.context = {
     sut: authoriser.handler,
-    moqLogger: Mock.ofType<Logger>(),
+    moqFailedAuthLogger: Mock.ofType<Logger>(),
     moqJwksClient: Mock.ofType<JwksClient>(),
     testAppId: uuid(),
     testIssuer: uuid(),
@@ -48,7 +48,7 @@ Given('a custom authoriser lambda', function () {
   };
 
   // Override the Logger, so we can verify calls to it.
-  authoriser.setFailedAuthLogger(context.moqLogger.object);
+  authoriser.setFailedAuthLogger(context.moqFailedAuthLogger.object);
 
   // Override the system under test's `AdJwtVerifier`, so we can use an AdJwtVerifier that performs
   // exactly as normal, other than it won't make any external web calls to get public keys.
@@ -178,11 +178,8 @@ Then('the result should Allow access', function () {
   const context: AuthoriseStepsContext = this.context;
   const result = <CustomAuthorizerResult>context.result;
 
-  context.moqLogger.verify(
-    x => x.error(
-      It.is<string>(s => /Failed authorization/.test(s)),
-      It.isAny()),
-    Times.never());
+  context.moqFailedAuthLogger.verify(x => x(It.isAny(), It.isAny()), Times.never());
+  context.moqFailedAuthLogger.verify(x => x(It.isAny(), It.isAny(), It.isAny()), Times.never());
 
   expect(result.policyDocument.Statement[0].Effect).to.equal('Allow');
   expect(result.principalId).to.equal(context.testTokenUniqueName);
@@ -207,9 +204,10 @@ Then('the result policy methodArn should be {string}', function (expectedResultM
 Then('the failed authorization reason should contain {string}', function (failureReason: string) {
   const context: AuthoriseStepsContext = this.context;
 
-  context.moqLogger.verify(
-    x => x.error(
+  context.moqFailedAuthLogger.verify(
+    x => x(
       It.is<string>(s => /Failed authorization\. Responding with Deny\./.test(s)),
+      'error',
       It.is<any>(o => o.failedAuthReason.indexOf(failureReason) > -1)),
     Times.once());
 });
