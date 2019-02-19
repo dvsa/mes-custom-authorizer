@@ -12,7 +12,7 @@ export const uniqueLogStreamName = () => {
 };
 
 export default function createFailedAuthLogger(): Logger {
-  const logger = createLogger();
+  let logger = createLogger();
 
   // Always log to console, this is helpful when running locally, and also if any issues arise
   // with accessing the dedicated FAILED_LOGINS_CWLG CloudWatch log.
@@ -26,16 +26,47 @@ export default function createFailedAuthLogger(): Logger {
   const cloudWatchLogGroupName: string = process.env.FAILED_LOGINS_CWLG_NAME || '';
   if (cloudWatchLogGroupName && cloudWatchLogGroupName.length > 0) {
     const streamName = uniqueLogStreamName();
-    logger.add(new CloudWatchTransport({
-      logGroupName: cloudWatchLogGroupName,
-      logStreamName: streamName,
-      createLogGroup: true,
-      createLogStream: true,
-      submissionInterval: 1000,
-      submissionRetryCount: 3,
-    }));
-    console.log(`Initialised Failed Auth logging to: ${cloudWatchLogGroupName}/${streamName}`);
+
+    logger = createLogger({
+      transports: [
+        new transports.Console({
+          format: format.json(),
+        }),
+        new CloudWatchTransport({
+          logGroupName: cloudWatchLogGroupName,
+          logStreamName: streamName,
+          createLogGroup: true,
+          createLogStream: true,
+          submissionInterval: 1000,
+          submissionRetryCount: 3,
+          awsConfig: {
+            region: 'eu-west-1',
+            accessKeyId: <string><unknown>undefined,
+            secretAccessKey: <string><unknown>undefined,
+          }
+        })
+      ]
+    });
+    
+    // logger.add(new CloudWatchTransport({
+    //   logGroupName: cloudWatchLogGroupName,
+    //   logStreamName: streamName,
+    //   createLogGroup: true,
+    //   createLogStream: true,
+    //   submissionInterval: 1000,
+    //   submissionRetryCount: 3,
+    //   awsConfig: {
+    //     region: 'eu-west-1',
+    //     accessKeyId: <string><unknown>null,
+    //     secretAccessKey: <string><unknown>null,
+    //   }
+    // }));
+    console.log(`rs-todo: undefined Initialised Failed Auth logging to: ${cloudWatchLogGroupName}/${streamName}`);
   }
+
+  logger.on('error', function (err) { 
+    console.log(`Error during logging: ${err}`);
+  });
 
   return logger;
 }
