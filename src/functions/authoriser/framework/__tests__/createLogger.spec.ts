@@ -1,6 +1,11 @@
-import { uniqueLogStreamName } from '../createLogger';
+import * as awsSdkMock from 'aws-sdk-mock';
+import * as sinon from 'sinon';
+
+import { uniqueLogStreamName, createLogger } from '../createLogger';
+import { CloudWatchLogs } from 'aws-sdk';
 
 describe('createLogger', () => {
+
   describe('uniqueLogStreamName', () => {
     const sut = uniqueLogStreamName;
 
@@ -24,6 +29,32 @@ describe('createLogger', () => {
 
       // ASSERT
       expect(results.size).toEqual(countToGenerate);
+    });
+  });
+
+  describe('Logger', () => {
+
+    const createLogGroupSpy = sinon.stub().resolves(true);
+    const createLogStreamSpy = sinon.stub().resolves(true);
+    const putLogEventsSpy = sinon.stub().resolves(true);
+
+    beforeEach(() => {
+
+      awsSdkMock.mock('CloudWatchLogs', 'createLogGroup', createLogGroupSpy);
+      awsSdkMock.mock('CloudWatchLogs', 'createLogStream', createLogStreamSpy);
+      awsSdkMock.mock('CloudWatchLogs', 'putLogEvents', putLogEventsSpy);
+
+      process.env.FAILED_LOGINS_CWLG_NAME = 'testLogGroupName';
+
+    });
+
+    it('should call the correct CloudWatchLogs methods', async () => {
+      const logger = await createLogger('testLoggerName');
+      logger('test error message', 'error');
+
+      expect(createLogGroupSpy.calledWith({ logGroupName: 'testLogGroupName' })).toBe(true);
+      expect(createLogStreamSpy.called).toBe(true);
+      expect(putLogEventsSpy.called).toBe(true);
     });
   });
 });
