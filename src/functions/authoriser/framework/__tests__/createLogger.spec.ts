@@ -81,7 +81,7 @@ describe('Logger', () => {
       awsSdkMock.mock('CloudWatchLogs', 'putLogEvents', putLogEventsSpy);
 
       const logger = await createLogger('testLoggerName');
-      logger('test error message', 'error');
+      await logger('test error message', 'error');
 
       expect(createLogStreamSpy.called).toBe(true);
       expect(putLogEventsSpy.called).toBe(true);
