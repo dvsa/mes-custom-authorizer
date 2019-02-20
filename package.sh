@@ -10,10 +10,10 @@ git_rev=$(git rev-parse --short HEAD)
 ignore_func_prefix="local"
 
 mkdir -p ${artefact_dir}
-functions=$(npx yaml2json serverless.yml | jq -r '.functions | keys | .[]')
+functions=$(npx yaml2json serverless.yml | jq -r '.functions | keys | .[]' | sed 's/\r\n/\n/')
 for func_name in ${functions}; do
   if [[ $func_name == *"$ignore_func_prefix"* ]]; then
-  continue
+    continue
   fi
   if [ -z ${LAMBDAS} ] || echo ${LAMBDAS} | grep ${func_name}; then
     bundle_path="${bundle_dir}${func_name}.js"

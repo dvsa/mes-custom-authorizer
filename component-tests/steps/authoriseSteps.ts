@@ -1,20 +1,19 @@
-import { Given, When, Then, After, Before } from 'cucumber';
+import { Given, When, Then, After } from 'cucumber';
 import { Mock, It, Times, IMock } from 'typemoq';
 import { expect } from 'chai';
-import * as sinon from 'sinon';
 import * as crypto from 'crypto';
 import { Buffer } from 'buffer';
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
 import * as aws from 'aws-sdk-mock';
 import * as jsonwebtoken from 'jsonwebtoken';
 import * as authoriser from '../../src/functions/authoriser/framework/handler';
+import { Logger } from '../../src/functions/authoriser/framework/createLogger';
 import AdJwtVerifier, { JwksClient } from
   '../../src/functions/authoriser/application/AdJwtVerifier';
 
 interface AuthoriseStepsContext {
-  sinonSandbox: sinon.SinonSandbox;
   sut: (event: CustomAuthorizerEvent) => Promise<CustomAuthorizerResult>;
-  moqConsoleLog: IMock<(message?: any, ...optionalParams: any[]) => void>;
+  moqFailedAuthLogger: IMock<Logger>;
   moqJwksClient: IMock<JwksClient>;
   testAppId: string;
   testIssuer: string;
@@ -24,22 +23,20 @@ interface AuthoriseStepsContext {
   token: string;
   methodArn: string;
   result?: CustomAuthorizerResult;
+  restoreDynamoDBDocumentClient?: boolean;
 }
-
-Before(() => {
-  aws.restore('DynamoDB.DocumentClient');
-});
 
 After(function () {
   const context: AuthoriseStepsContext = this.context;
-  context.sinonSandbox.restore();
+  if (context.restoreDynamoDBDocumentClient) {
+    aws.restore('DynamoDB.DocumentClient');
+  }
 });
 
 Given('a custom authoriser lambda', function () {
   const context: AuthoriseStepsContext = this.context = {
     sut: authoriser.handler,
-    sinonSandbox: sinon.createSandbox(),
-    moqConsoleLog: Mock.ofInstance(console.log),
+    moqFailedAuthLogger: Mock.ofType<Logger>(),
     moqJwksClient: Mock.ofType<JwksClient>(),
     testAppId: uuid(),
     testIssuer: uuid(),
@@ -50,14 +47,8 @@ Given('a custom authoriser lambda', function () {
     methodArn: 'arn:aws:dummy:method:arn/stage/VERB/some/path',
   };
 
-  // Override `console.log` with a Moq, so we can intercept calls to it,
-  // but still redirect back to the original `console.log`
-  const originalConsoleLog = console.log;
-  context.moqConsoleLog
-    .setup(x => x(It.isAny(), It.isAny()))
-    .callback(
-      (message?: any, ...optionalParams: any[]) => originalConsoleLog(message, ...optionalParams));
-  context.sinonSandbox.replace(console, 'log', context.moqConsoleLog.object);
+  // Override the Logger, so we can verify calls to it.
+  authoriser.setFailedAuthLogger(context.moqFailedAuthLogger.object);
 
   // Override the system under test's `AdJwtVerifier`, so we can use an AdJwtVerifier that performs
   // exactly as normal, other than it won't make any external web calls to get public keys.
@@ -89,13 +80,19 @@ Given('a valid token with employee id of {string}', function (employeeId: string
     context, undefined, undefined, undefined, undefined, undefined, employeeId);
 });
 
-Given('an employee with id of {string} exists', (employeeId: string) => {
+Given('an employee with id of {string} exists', function (employeeId: string) {
   aws.mock(
     'DynamoDB.DocumentClient', 'get', async params => ({ Item: { staffNumber: employeeId } }));
+
+  const context: AuthoriseStepsContext = this.context;
+  context.restoreDynamoDBDocumentClient = true;
 });
 
-Given('an employee with id of {string} does not exist', (employeeId: string) => {
+Given('an employee with id of {string} does not exist', function (employeeId: string) {
   aws.mock('DynamoDB.DocumentClient', 'get', async params => ({}));
+
+  const context: AuthoriseStepsContext = this.context;
+  context.restoreDynamoDBDocumentClient = true;
 });
 
 Given('a valid token with no employee id', function () {
@@ -181,10 +178,8 @@ Then('the result should Allow access', function () {
   const context: AuthoriseStepsContext = this.context;
   const result = <CustomAuthorizerResult>context.result;
 
-  context.moqConsoleLog.verify(
-    x => x(It.is<string>(s =>
-      /Failed authorization/.test(s))),
-    Times.never());
+  context.moqFailedAuthLogger.verify(x => x(It.isAny(), It.isAny()), Times.never());
+  context.moqFailedAuthLogger.verify(x => x(It.isAny(), It.isAny(), It.isAny()), Times.never());
 
   expect(result.policyDocument.Statement[0].Effect).to.equal('Allow');
   expect(result.principalId).to.equal(context.testTokenUniqueName);
@@ -209,10 +204,11 @@ Then('the result policy methodArn should be {string}', function (expectedResultM
 Then('the failed authorization reason should contain {string}', function (failureReason: string) {
   const context: AuthoriseStepsContext = this.context;
 
-  context.moqConsoleLog.verify(
-    x => x(It.is<string>(s =>
-      /Failed authorization\. Responding with Deny\./.test(s) &&
-      s.indexOf(failureReason) > -1)),
+  context.moqFailedAuthLogger.verify(
+    x => x(
+      It.is<string>(s => /Failed authorization\. Responding with Deny\./.test(s)),
+      'error',
+      It.is<any>(o => o.failedAuthReason.indexOf(failureReason) > -1)),
     Times.once());
 });
 
@@ -248,7 +244,7 @@ const createToken = (
 };
 
 const base64Decode = (base64String: string): { [propName: string]: any } => {
-  const buffer = new Buffer(base64String, 'base64');
+  const buffer = Buffer.from(base64String, 'base64');
   const json = buffer.toString('ascii');
   const object = JSON.parse(json);
   return object;
@@ -256,7 +252,7 @@ const base64Decode = (base64String: string): { [propName: string]: any } => {
 
 const base64Encode = (object: any): string => {
   const json = JSON.stringify(object);
-  const buffer = new Buffer(json);
+  const buffer = Buffer.from(json);
   const base64String = buffer.toString('base64');
   return base64String;
 };

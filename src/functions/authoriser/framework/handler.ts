@@ -1,13 +1,15 @@
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
-
 import AdJwtVerifier from '../application/AdJwtVerifier';
 import * as transformMethodArn from '../application/transformMethodArn';
+import { createLogger, Logger } from './createLogger';
 import createAdJwtVerifier from './createAdJwtVerifier';
 import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
 import verifyEmployeeId from '../application/verifyEmployeeId';
 
 type Effect = 'Allow' | 'Deny';
+
 let adJwtVerifier: AdJwtVerifier | null = null;
+let failedAuthLogger: Logger | null = null;
 
 export async function handler(event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> {
   if (adJwtVerifier === null) {
@@ -46,14 +48,19 @@ function createAuthResult(
   };
 }
 
-function handleError(err: any, event: CustomAuthorizerEvent, methodArn: string) {
-  const failedAuthLogMessage = JSON.stringify({
-    message: 'Failed authorization. Responding with Deny.',
-    reason: err && err.toString ? err.toString() : null,
+async function handleError(err: any, event: CustomAuthorizerEvent, methodArn: string) {
+  const failedAuthDetails = {
+    err,
+    event,
+    failedAuthReason: err && err.toString ? err.toString() : null,
     timestamp: new Date(),
-    err, event, // tslint:disable-line
-  });
-  console.log(failedAuthLogMessage);
+  };
+
+  if (failedAuthLogger === null) {
+    failedAuthLogger = await createLogger('FailedAuthLogger');
+  }
+  await failedAuthLogger('Failed authorization. Responding with Deny.', 'error', failedAuthDetails);
+
   return createAuthResult('not-authorized', 'Deny', methodArn);
 }
 
@@ -62,4 +69,11 @@ function handleError(err: any, event: CustomAuthorizerEvent, methodArn: string) 
  */
 export async function setAdJwtVerifier(adJwtVerifierOverride: AdJwtVerifier) {
   adJwtVerifier = adJwtVerifierOverride;
+}
+
+/**
+ * Ability to explicitly set the Failed Authorisation Logger, for use by the tests.
+ */
+export async function setFailedAuthLogger(failedAuthLoggerOverride: Logger) {
+  failedAuthLogger = failedAuthLoggerOverride;
 }
