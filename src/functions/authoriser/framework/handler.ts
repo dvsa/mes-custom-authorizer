@@ -50,9 +50,10 @@ function createAuthResult(
 
 async function handleError(err: any, event: CustomAuthorizerEvent, methodArn: string) {
   const failedAuthDetails = {
+    err,
+    event,
     failedAuthReason: err && err.toString ? err.toString() : null,
     timestamp: new Date(),
-    err, event, // tslint:disable-line
   };
 
   if (failedAuthLogger === null) {

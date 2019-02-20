@@ -6,7 +6,7 @@ type Bag = { [propName: string]: any };
 
 export type Logger = (message: string, level: LogLevel, logData?: Bag) => Promise<void>;
 
-export const uniqueLogStreamName = (loggerName: string) => {
+export const uniqueLogStreamName = (loggerName: string): string => {
   const date = new Date();
   const year = date.getUTCFullYear();
   const month = date.getUTCMonth().toString().padStart(2, '0');
@@ -26,10 +26,10 @@ async function createCloudWatchLogger(logGroupName: string, loggerName: string) 
   const logStreamName = uniqueLogStreamName(loggerName);
 
   await cloudWatchLogs.createLogGroup({ logGroupName }).promise()
-    .catch(err => ignoreResourceAlreadyExistsException(err));
+    .catch(ignoreResourceAlreadyExistsException);
 
   await cloudWatchLogs.createLogStream({ logGroupName, logStreamName }).promise()
-    .catch(err => ignoreResourceAlreadyExistsException(err));
+    .catch(ignoreResourceAlreadyExistsException);
 
   let sequenceToken: CloudWatchLogs.SequenceToken | undefined = undefined;
 
