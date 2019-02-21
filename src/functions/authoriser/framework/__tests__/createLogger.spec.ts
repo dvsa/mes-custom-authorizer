@@ -34,13 +34,11 @@ describe('Logger', () => {
 
   describe('createLogger', () => {
 
-    let createLogGroupSpy;
     let createLogStreamSpy;
     let putLogEventsSpy;
 
     beforeEach(() => {
 
-      awsSdkMock.restore('CloudWatchLogs', 'createLogGroup');
       awsSdkMock.restore('CloudWatchLogs', 'createLogStream');
       awsSdkMock.restore('CloudWatchLogs', 'putLogEvents');
 
@@ -50,55 +48,47 @@ describe('Logger', () => {
 
     it('should call the correct CloudWatchLogs methods', async () => {
 
-      createLogGroupSpy = sinon.stub().resolves(true);
       createLogStreamSpy = sinon.stub().resolves(true);
       putLogEventsSpy = sinon.stub().resolves(true);
 
-      awsSdkMock.mock('CloudWatchLogs', 'createLogGroup', createLogGroupSpy);
       awsSdkMock.mock('CloudWatchLogs', 'createLogStream', createLogStreamSpy);
       awsSdkMock.mock('CloudWatchLogs', 'putLogEvents', putLogEventsSpy);
 
       const logger = await createLogger('testLoggerName');
       logger('test error message', 'error');
 
-      expect(createLogGroupSpy.calledWith({ logGroupName: 'testLogGroupName' })).toBe(true);
       expect(createLogStreamSpy.called).toBe(true);
       expect(putLogEventsSpy.called).toBe(true);
     });
 
     it('should swallow a \"ResourceAlreadyExistsException\" error', async () => {
 
-      createLogStreamSpy = sinon.stub().resolves(true);
       putLogEventsSpy = sinon.stub().resolves(true);
 
-      awsSdkMock.mock('CloudWatchLogs', 'createLogGroup', async (params) => {
+      awsSdkMock.mock('CloudWatchLogs', 'createLogStream', async (params) => {
         throw {
           errorType: 'ResourceAlreadyExistsException',
           code: 'ResourceAlreadyExistsException',
         };
       });
-      awsSdkMock.mock('CloudWatchLogs', 'createLogStream', createLogStreamSpy);
       awsSdkMock.mock('CloudWatchLogs', 'putLogEvents', putLogEventsSpy);
 
       const logger = await createLogger('testLoggerName');
       await logger('test error message', 'error');
 
-      expect(createLogStreamSpy.called).toBe(true);
       expect(putLogEventsSpy.called).toBe(true);
     });
 
     it('should throw on any other exceptions', async (done) => {
 
-      createLogStreamSpy = sinon.stub().resolves(true);
       putLogEventsSpy = sinon.stub().resolves(true);
 
-      awsSdkMock.mock('CloudWatchLogs', 'createLogGroup', async (params) => {
+      awsSdkMock.mock('CloudWatchLogs', 'createLogStream', async (params) => {
         throw {
           errorType: 'SomeOtherException',
           code: 'SomeOtherException',
         };
       });
-      awsSdkMock.mock('CloudWatchLogs', 'createLogStream', createLogStreamSpy);
       awsSdkMock.mock('CloudWatchLogs', 'putLogEvents', putLogEventsSpy);
 
       try {
