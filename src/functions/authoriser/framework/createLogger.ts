@@ -25,9 +25,6 @@ async function createCloudWatchLogger(logGroupName: string, loggerName: string) 
   const cloudWatchLogs = new CloudWatchLogs();
   const logStreamName = uniqueLogStreamName(loggerName);
 
-  await cloudWatchLogs.createLogGroup({ logGroupName }).promise()
-    .catch(ignoreResourceAlreadyExistsException);
-
   await cloudWatchLogs.createLogStream({ logGroupName, logStreamName }).promise()
     .catch(ignoreResourceAlreadyExistsException);
 
