@@ -57,7 +57,7 @@ async function handleError(err: any, event: CustomAuthorizerEvent, methodArn: st
   };
 
   if (failedAuthLogger === null) {
-    failedAuthLogger = await createLogger('FailedAuthLogger');
+    failedAuthLogger = await createLogger('FailedAuthLogger', process.env.FAILED_LOGINS_CWLG_NAME);
   }
   await failedAuthLogger('Failed authorization. Responding with Deny.', 'error', failedAuthDetails);
 

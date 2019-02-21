@@ -50,11 +50,10 @@ async function createCloudWatchLogger(logGroupName: string, loggerName: string) 
   return cloudWatchLogger;
 }
 
-export async function createLogger(loggerName: string): Promise<Logger> {
-  // If the `FAILED_LOGINS_CWLG_NAME` environment variable is set then log failed auth messages
-  // to that CloudWatch log group. This is also used to indicate we are running in the
-  // infrastructure, so the Amazon SDK will automatically pull access credentials from IAM Role.
-  const cloudWatchLogGroupName: string = process.env.FAILED_LOGINS_CWLG_NAME || '';
+export async function createLogger(loggerName: string, cloudWatchLogGroupName: string | undefined): Promise<Logger> {
+  // If the `cloudWatchLogGroupName` variable is set then log to that CloudWatch log group.
+  // This is also used to indicate we are running in the infrastructure, so the Amazon SDK will
+  // automatically pull access credentials from IAM Role.
   const cloudWatchLogger = (cloudWatchLogGroupName && cloudWatchLogGroupName.length > 0)
     ? await createCloudWatchLogger(cloudWatchLogGroupName, loggerName)
     : null;

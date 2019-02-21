@@ -42,8 +42,6 @@ describe('Logger', () => {
       awsSdkMock.restore('CloudWatchLogs', 'createLogStream');
       awsSdkMock.restore('CloudWatchLogs', 'putLogEvents');
 
-      process.env.FAILED_LOGINS_CWLG_NAME = 'testLogGroupName';
-
     });
 
     it('should call the correct CloudWatchLogs methods', async () => {
@@ -54,7 +52,7 @@ describe('Logger', () => {
       awsSdkMock.mock('CloudWatchLogs', 'createLogStream', createLogStreamSpy);
       awsSdkMock.mock('CloudWatchLogs', 'putLogEvents', putLogEventsSpy);
 
-      const logger = await createLogger('testLoggerName');
+      const logger = await createLogger('testLoggerName', 'testLogGroupName');
       logger('test error message', 'error');
 
       expect(createLogStreamSpy.called).toBe(true);
@@ -73,7 +71,7 @@ describe('Logger', () => {
       });
       awsSdkMock.mock('CloudWatchLogs', 'putLogEvents', putLogEventsSpy);
 
-      const logger = await createLogger('testLoggerName');
+      const logger = await createLogger('testLoggerName', 'testLogGroupName');
       await logger('test error message', 'error');
 
       expect(putLogEventsSpy.called).toBe(true);
@@ -94,7 +92,7 @@ describe('Logger', () => {
       let errorThrown: boolean = false;
 
       try {
-        const logger = await createLogger('testLoggerName');
+        const logger = await createLogger('testLoggerName', 'testLogGroupName');
       } catch (e) {
         expect(e).toBeTruthy();
         errorThrown = true;
