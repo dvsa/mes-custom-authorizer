@@ -9,8 +9,8 @@ export type Logger = (message: string, level: LogLevel, logData?: Bag) => Promis
 export const uniqueLogStreamName = (loggerName: string): string => {
   const date = new Date();
   const year = date.getUTCFullYear();
-  const month = date.getUTCMonth().toString().padStart(2, '0');
-  const day = date.getUTCDay().toString().padStart(2, '0');
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+  const day = date.getUTCDate().toString().padStart(2, '0');
   const randomUuid = randomBytes(16).toString('hex');
   return `${loggerName}-${year}-${month}-${day}-${randomUuid}`;
 };
