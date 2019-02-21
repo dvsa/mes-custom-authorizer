@@ -79,7 +79,7 @@ describe('Logger', () => {
       expect(putLogEventsSpy.called).toBe(true);
     });
 
-    it('should throw on any other exceptions', async (done) => {
+    it('should throw on any other exceptions', async () => {
 
       putLogEventsSpy = sinon.stub().resolves(true);
 
@@ -91,12 +91,16 @@ describe('Logger', () => {
       });
       awsSdkMock.mock('CloudWatchLogs', 'putLogEvents', putLogEventsSpy);
 
+      let errorThrown: boolean = false;
+
       try {
         const logger = await createLogger('testLoggerName');
       } catch (e) {
         expect(e).toBeTruthy();
-        done();
+        errorThrown = true;
       }
+
+      expect(errorThrown).toEqual(true);
     });
   });
 });
