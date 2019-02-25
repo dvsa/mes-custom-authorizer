@@ -9,8 +9,8 @@ export type Logger = (message: string, level: LogLevel, logData?: Bag) => Promis
 export const uniqueLogStreamName = (loggerName: string): string => {
   const date = new Date();
   const year = date.getUTCFullYear();
-  const month = date.getUTCMonth().toString().padStart(2, '0');
-  const day = date.getUTCDay().toString().padStart(2, '0');
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+  const day = date.getUTCDate().toString().padStart(2, '0');
   const randomUuid = randomBytes(16).toString('hex');
   return `${loggerName}-${year}-${month}-${day}-${randomUuid}`;
 };
@@ -50,11 +50,10 @@ async function createCloudWatchLogger(logGroupName: string, loggerName: string) 
   return cloudWatchLogger;
 }
 
-export async function createLogger(loggerName: string): Promise<Logger> {
-  // If the `FAILED_LOGINS_CWLG_NAME` environment variable is set then log failed auth messages
-  // to that CloudWatch log group. This is also used to indicate we are running in the
-  // infrastructure, so the Amazon SDK will automatically pull access credentials from IAM Role.
-  const cloudWatchLogGroupName: string = process.env.FAILED_LOGINS_CWLG_NAME || '';
+export async function createLogger(loggerName: string, cloudWatchLogGroupName: string | undefined): Promise<Logger> {
+  // If the `cloudWatchLogGroupName` variable is set then log to that CloudWatch log group.
+  // This is also used to indicate we are running in the infrastructure, so the Amazon SDK will
+  // automatically pull access credentials from IAM Role.
   const cloudWatchLogger = (cloudWatchLogGroupName && cloudWatchLogGroupName.length > 0)
     ? await createCloudWatchLogger(cloudWatchLogGroupName, loggerName)
     : null;
