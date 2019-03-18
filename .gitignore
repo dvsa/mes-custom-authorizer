@@ -17,3 +17,5 @@ npm-debug.log
 dist
 .dynamodb
 .serverless/
+.nyc_output/
+coverage/

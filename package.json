@@ -32,13 +32,16 @@
     "jasmine": "^3.3.1",
     "jasmine-spec-reporter": "^4.2.1",
     "npm-run-all": "^4.1.5",
+    "nyc": "^13.3.0",
     "rimraf": "^2.6.2",
     "serverless": "^1.36.3",
     "serverless-dynamodb-local": "^0.2.35",
     "serverless-offline": "^4.2.0",
     "serverless-webpack": "^5.2.0",
     "sinon": "^7.2.3",
+    "source-map-support": "^0.5.10",
     "ts-loader": "^5.2.2",
+    "ts-node": "^8.0.3",
     "tslint": "^5.11.0",
     "tslint-config-airbnb": "^5.11.0",
     "typemoq": "^2.1.0",
@@ -57,7 +60,25 @@
     "security-scan": "git secrets --scan && git log -p | scanrepo",
     "comp-test": "cucumber-js component-tests/ --require build/component-tests/**/*.js",
     "test": "npm run compile && jasmine && npm run comp-test",
+    "test:jasmine-coverage": "nyc npm run test",
     "start": "npm run compile && sls dynamodb install && sls offline start"
+  },
+  "nyc": {
+    "require": [
+      "ts-node/register"
+    ],
+    "reporter": [
+      "lcov",
+      "text-summary"
+    ],
+    "exclude": [
+      "**/__mocks__/*",
+      "**/__tests__/*"
+    ],
+    "exclude-after-remap": false,
+    "sourceMap": true,
+    "produce-source-map": true,
+    "instrument": true
   },
   "husky": {
     "hooks": {
