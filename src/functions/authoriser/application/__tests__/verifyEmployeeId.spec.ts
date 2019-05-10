@@ -5,7 +5,7 @@ import verifyEmployeeId from '../verifyEmployeeId';
 
 describe('verifyEmployeeId', () => {
   const employeeIdExtKey = 'extn.employeeId';
-  describe('veriedToken parameter', () => {
+  describe('verifiedToken parameter', () => {
     it('should throw an exception when extn.employeeId is undefined', async () => {
       const verifiedToken: VerifiedTokenPayload = {
         sub: 'sub',
