@@ -7,7 +7,7 @@ export default async function verifyEmployeeId(
 
   const employeeId = extractEmployeeIdFromToken(verifiedToken, employeeIdExtKey);
 
-  if (isEmployeeIdEmptyOrNull(employeeId)) {
+  if (!employeeId || isEmployeeIdEmptyOrNull(employeeId)) {
     throw 'Verified Token does not have employeeId';
   }
 
