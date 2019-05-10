@@ -4,6 +4,7 @@ import { VerifiedTokenPayload } from '../AdJwtVerifier';
 import verifyEmployeeId from '../verifyEmployeeId';
 
 describe('verifyEmployeeId', () => {
+  const employeeIdExtKey = 'extn.employeeId';
   describe('veriedToken parameter', () => {
     it('should throw an exception when extn.employeeId is undefined', async () => {
       const verifiedToken: VerifiedTokenPayload = {
@@ -13,7 +14,7 @@ describe('verifyEmployeeId', () => {
       };
 
       try {
-        await verifyEmployeeId(verifiedToken);
+        await verifyEmployeeId(verifiedToken, employeeIdExtKey);
       } catch (err) {
         expect(err).toBe('Verified Token does not have employeeId');
       }
@@ -34,7 +35,7 @@ describe('verifyEmployeeId', () => {
       };
 
       try {
-        await verifyEmployeeId(verifiedToken);
+        await verifyEmployeeId(verifiedToken, employeeIdExtKey);
       } catch (err) {
         expect(err).toBe('The employee id was not found');
       }
@@ -57,7 +58,7 @@ describe('verifyEmployeeId', () => {
       };
 
       expect(async () => {
-        await verifyEmployeeId(verifiedToken);
+        await verifyEmployeeId(verifiedToken, employeeIdExtKey);
       }).not.toThrow();
     });
   });

@@ -1,5 +1,8 @@
 import { decode, verify } from 'jsonwebtoken';
 
+export type EmployeeIdKey = 'extn.employeeId' | 'employeeid';
+export type EmployeeId = string[] | string;
+
 export interface JsonWebKey {
   readonly kid: string;
   readonly publicKey?: string;
@@ -10,11 +13,21 @@ export interface JwksClient {
   getSigningKey(kid: string): Promise<JsonWebKey>;
 }
 
-export interface VerifiedTokenPayload {
+export type BaseVerifiedTokenPayload = {
   readonly sub: string;
   readonly unique_name: string;
-  readonly 'extn.employeeId': string[];
+  readonly [index: string]: any;
+};
+
+export interface EmployeeIdExtKeyVerifiedTokenPayload extends BaseVerifiedTokenPayload {
+  'extn.employeeId': string[];
 }
+
+export interface EmployeeIdKeyVerifiedTokenPayload extends BaseVerifiedTokenPayload {
+  employeeid: string;
+}
+
+export type VerifiedTokenPayload = EmployeeIdExtKeyVerifiedTokenPayload | EmployeeIdKeyVerifiedTokenPayload;
 
 export default class AdJwtVerifier {
   readonly applicationId: string;

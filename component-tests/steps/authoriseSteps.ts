@@ -31,6 +31,8 @@ After(function () {
   if (context.restoreDynamoDBDocumentClient) {
     aws.restore('DynamoDB.DocumentClient');
   }
+  // Clear out environment variables
+  delete process.env.EMPLOYEE_ID_EXT_KEY;
 });
 
 Given('a custom authoriser lambda', function () {
@@ -49,6 +51,9 @@ Given('a custom authoriser lambda', function () {
 
   // Override the Logger, so we can verify calls to it.
   authoriser.setFailedAuthLogger(context.moqFailedAuthLogger.object);
+
+  // Mock out environment variables
+  process.env.EMPLOYEE_ID_EXT_KEY = 'extn.employeeId';
 
   // Override the system under test's `AdJwtVerifier`, so we can use an AdJwtVerifier that performs
   // exactly as normal, other than it won't make any external web calls to get public keys.
