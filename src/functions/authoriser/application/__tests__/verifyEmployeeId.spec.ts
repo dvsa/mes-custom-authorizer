@@ -60,9 +60,12 @@ describe('verifyEmployeeId', () => {
         employeeid: '1435134',
       };
 
-      expect(async () => {
-        await verifyEmployeeId(verifiedToken, employeeIdExtKey);
-      }).not.toThrow();
+      try {
+        const result = await verifyEmployeeId(verifiedToken, employeeIdExtKey);
+        expect(result).toBeDefined();
+      } catch (err) {
+        fail('verifyEmployeeId should not fail when employeeid is valid');
+      }
     });
   });
 
