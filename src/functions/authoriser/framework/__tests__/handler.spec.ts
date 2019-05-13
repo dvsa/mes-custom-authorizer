@@ -5,11 +5,13 @@ import { handler, setFailedAuthLogger } from '../handler';
 import { Logger } from '../createLogger';
 import * as createAdJwtVerifier from '../createAdJwtVerifier';
 import * as verifyEmployeeId from '../../application/verifyEmployeeId';
+import * as getEmployeeIdKey from '../../application/getEmployeeIdKey';
 
 describe('handler', () => {
   const moqFailedAuthLogger = Mock.ofType<Logger>();
   const mockAdJwtVerifier = Mock.ofType<AdJwtVerifier>();
   const mockVerifyEmployeeId = Mock.ofInstance(verifyEmployeeId.default);
+  const mockGetEmployeeIdKey = Mock.ofInstance(getEmployeeIdKey.default);
 
   let testCustomAuthorizerEvent: CustomAuthorizerEvent;
 
@@ -19,10 +21,12 @@ describe('handler', () => {
     moqFailedAuthLogger.reset();
     mockAdJwtVerifier.reset();
     mockVerifyEmployeeId.reset();
+    mockGetEmployeeIdKey.reset();
 
     mockAdJwtVerifier.setup((x: any) => x.then).returns(() => undefined); // TypeMoq limitation
-    mockVerifyEmployeeId.setup(x => x(It.isAny()))
+    mockVerifyEmployeeId.setup(x => x(It.isAny(), It.isAny()))
       .returns(() => Promise.resolve(true));
+    mockGetEmployeeIdKey.setup(x => x()).returns(() => 'employeeid');
 
     testCustomAuthorizerEvent = {
       type: 'type',
@@ -34,6 +38,7 @@ describe('handler', () => {
       .and.returnValue(Promise.resolve(mockAdJwtVerifier.object));
 
     spyOn(verifyEmployeeId, 'default').and.callFake(mockVerifyEmployeeId.object);
+    spyOn(getEmployeeIdKey, 'default').and.callFake(mockGetEmployeeIdKey.object);
 
     setFailedAuthLogger(moqFailedAuthLogger.object);
   });
@@ -66,7 +71,7 @@ describe('handler', () => {
     const testVerifiedTokenPayload: VerifiedTokenPayload = {
       sub: 'test-subject',
       unique_name: 'test-unique_name',
-      'extn.employeeId': ['12345678'],
+      employeeid: '12345678',
     };
 
     mockAdJwtVerifier.setup(x => x.verifyJwt(It.isAny()))

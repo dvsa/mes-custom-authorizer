@@ -1,10 +1,11 @@
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
-import AdJwtVerifier from '../application/AdJwtVerifier';
+import AdJwtVerifier, { EmployeeIdKey } from '../application/AdJwtVerifier';
 import * as transformMethodArn from '../application/transformMethodArn';
 import { createLogger, Logger } from './createLogger';
 import createAdJwtVerifier from './createAdJwtVerifier';
 import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
 import verifyEmployeeId from '../application/verifyEmployeeId';
+import getEmployeeIdKey from '../application/getEmployeeIdKey';
 
 type Effect = 'Allow' | 'Deny';
 
@@ -19,11 +20,14 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
   const token = event.authorizationToken || '';
   ensureNotNullOrEmpty(token, 'event.authorizationToken');
 
+  const employeeIdExtKey: EmployeeIdKey = getEmployeeIdKey();
+  ensureNotNullOrEmpty(employeeIdExtKey, 'employeeid or extn.employeeId');
+
   const methodArn = transformMethodArn.toAllVerbsAndAllResources(event.methodArn);
 
   try {
     const verifiedToken = await adJwtVerifier.verifyJwt(token);
-    const result = await verifyEmployeeId(verifiedToken);
+    const result = await verifyEmployeeId(verifiedToken, employeeIdExtKey);
     if (!result) {
       return handleError('The employee id was not found', event, methodArn);
     }
