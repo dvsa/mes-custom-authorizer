@@ -1,16 +1,19 @@
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
-import AdJwtVerifier, { EmployeeIdKey } from '../application/AdJwtVerifier';
+import AdJwtVerifier, { EmployeeIdKey, EmployeeId, VerifiedTokenPayload } from '../application/AdJwtVerifier';
 import * as transformMethodArn from '../application/transformMethodArn';
 import { createLogger, Logger } from './createLogger';
 import createAdJwtVerifier from './createAdJwtVerifier';
 import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
 import verifyEmployeeId from '../application/verifyEmployeeId';
 import getEmployeeIdKey from '../application/getEmployeeIdKey';
+import { extractEmployeeIdFromToken } from '../application/extractEmployeeIdFromToken';
 
 type Effect = 'Allow' | 'Deny';
 
 let adJwtVerifier: AdJwtVerifier | null = null;
 let failedAuthLogger: Logger | null = null;
+let employeeId: EmployeeId;
+let verifiedToken: VerifiedTokenPayload;
 
 export async function handler(event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> {
   if (adJwtVerifier === null) {
@@ -26,8 +29,10 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
   const methodArn = transformMethodArn.toAllVerbsAndAllResources(event.methodArn);
 
   try {
-    const verifiedToken = await adJwtVerifier.verifyJwt(token);
-    const result = await verifyEmployeeId(verifiedToken, employeeIdExtKey);
+    verifiedToken = await adJwtVerifier.verifyJwt(token);
+    employeeId = extractEmployeeIdFromToken(verifiedToken, employeeIdExtKey);
+    const result = await verifyEmployeeId(verifiedToken, employeeId);
+
     if (!result) {
       return handleError('The employee id was not found', event, methodArn);
     }
@@ -53,11 +58,20 @@ function createAuthResult(
 }
 
 async function handleError(err: any, event: CustomAuthorizerEvent, methodArn: string) {
+  const id = employeeId || null;
+  const name = verifiedToken ? verifiedToken.name : null;
+  const unique_name = verifiedToken ? verifiedToken.unique_name : null; // tslint:disable-line:variable-name
+
   const failedAuthDetails = {
     err,
     event,
     failedAuthReason: err && err.toString ? err.toString() : null,
     timestamp: new Date(),
+    employee: {
+      id,
+      name,
+      unique_name,
+    },
   };
 
   if (failedAuthLogger === null) {
