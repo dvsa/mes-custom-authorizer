@@ -13,7 +13,7 @@ describe('verifyEmployeeId', () => {
   });
 
   describe('verifiedToken parameter', () => {
-    it('should throw an exception when extn.employeeId is undefined', async () => {
+    it('should throw an exception when employeeId is undefined', async () => {
 
       aws.mock('DynamoDB.DocumentClient', 'get', async params => ({}));
       const verifiedToken: VerifiedTokenPayload = {
@@ -23,8 +23,8 @@ describe('verifyEmployeeId', () => {
       };
 
       try {
-        await verifyEmployeeId(verifiedToken, employeeIdExtKey);
-        fail('verifyEmployeeId should not succeed when extn.employeeId is undefined');
+        await verifyEmployeeId(verifiedToken, verifiedToken['extn.employeeId']);
+        fail('verifyEmployeeId should not succeed when employeeId is undefined');
       } catch (err) {
         expect(err).toBe('Verified Token does not have employeeId');
       }
@@ -33,7 +33,6 @@ describe('verifyEmployeeId', () => {
     it('should throw an exception when employeeid is an empty string', async () => {
 
       aws.mock('DynamoDB.DocumentClient', 'get', async params => ({}));
-      employeeIdExtKey = 'employeeid';
 
       const verifiedToken: VerifiedTokenPayload = {
         sub: 'sub',
@@ -42,7 +41,7 @@ describe('verifyEmployeeId', () => {
       };
 
       try {
-        await verifyEmployeeId(verifiedToken, employeeIdExtKey);
+        await verifyEmployeeId(verifiedToken, verifiedToken.employeeid);
         fail('verifyEmployeeId should not succeed when employeeid is an empty string');
       } catch (err) {
         expect(err).toBe('Verified Token does not have employeeId');
@@ -52,7 +51,6 @@ describe('verifyEmployeeId', () => {
     it('should not throw an exception when employeeid is valid', async () => {
 
       aws.mock('DynamoDB.DocumentClient', 'get', async params => ({}));
-      employeeIdExtKey = 'employeeid';
 
       const verifiedToken: VerifiedTokenPayload = {
         sub: 'sub',
@@ -61,7 +59,7 @@ describe('verifyEmployeeId', () => {
       };
 
       try {
-        const result = await verifyEmployeeId(verifiedToken, employeeIdExtKey);
+        const result = await verifyEmployeeId(verifiedToken, verifiedToken.employeeid);
         expect(result).toBeDefined();
       } catch (err) {
         fail('verifyEmployeeId should not fail when employeeid is valid');
@@ -85,7 +83,7 @@ describe('verifyEmployeeId', () => {
       };
 
       try {
-        const result = await verifyEmployeeId(verifiedToken, employeeIdExtKey);
+        const result = await verifyEmployeeId(verifiedToken, verifiedToken['extn.employeeId']);
         expect(result).toBe(false);
       } catch (err) {
         fail('verifyEmployeeId should not fail when no employeeId found in Users table');
@@ -93,6 +91,7 @@ describe('verifyEmployeeId', () => {
     });
 
     it('should return the verifed token when employeeId has been found', async () => {
+
       aws.mock(
         'DynamoDB.DocumentClient',
         'get',
@@ -109,7 +108,7 @@ describe('verifyEmployeeId', () => {
       };
 
       try {
-        const result = await verifyEmployeeId(verifiedToken, employeeIdExtKey);
+        const result = await verifyEmployeeId(verifiedToken, verifiedToken['extn.employeeId']);
         expect(result).toBeDefined();
       } catch (err) {
         fail(`verifyEmployeeId should not fail, error: ${err}`);
