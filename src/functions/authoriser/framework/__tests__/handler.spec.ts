@@ -1,5 +1,5 @@
 import { Mock, It, Times } from 'typemoq';
-import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
+import { CustomAuthorizerEvent, CustomAuthorizerResult, AuthResponseContext } from 'aws-lambda';
 import AdJwtVerifier, { VerifiedTokenPayload } from '../../application/AdJwtVerifier';
 import { handler, setFailedAuthLogger } from '../handler';
 import { Logger } from '../createLogger';
@@ -88,6 +88,7 @@ describe('handler', () => {
     expect((<{ Resource: string }>result.policyDocument.Statement[0]).Resource)
       .toEqual('arn:aws:execute-api:region:account-id:api-id/stage-name/*/*');
     expect(result.principalId).toEqual('test-unique_name');
+    expect((<AuthResponseContext>result.context).staffNumber).toBe('12345678');
 
     mockAdJwtVerifier.verify(x => x.verifyJwt('example-token'), Times.once());
   });
