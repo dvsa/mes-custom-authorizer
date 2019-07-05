@@ -43,8 +43,14 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
 }
 
 function createAuthResult(
-  principalId: string, effect: Effect, resource: string): CustomAuthorizerResult {
+  principalId: string, effect: Effect, resource: string,
+): CustomAuthorizerResult {
+  const staffNumber = Array.isArray(employeeId) ? employeeId[0] : employeeId;
+  const context = {
+    staffNumber,
+  };
   return {
+    context,
     principalId,
     policyDocument: {
       Version: '2012-10-17', // default version
