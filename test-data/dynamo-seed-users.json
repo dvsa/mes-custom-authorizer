@@ -1,26 +1,34 @@
 [
   {
-    "staffNumber": "12345678"
+    "staffNumber": "12345678",
+    "role": "LDTM"
   },
   {
-    "staffNumber": "01234567"
+    "staffNumber": "01234567",
+    "role": "DE"
   },
   {
-    "staffNumber": "00123456"
+    "staffNumber": "00123456",
+    "role": "LDTM"
   },
   {
-    "staffNumber": "28371932"
+    "staffNumber": "28371932",
+    "role": "DE"
   },
   {
-    "staffNumber": "90128472"
+    "staffNumber": "90128472",
+    "role": "LDTM"
   },
   {
-    "staffNumber": "47182032"
+    "staffNumber": "47182032",
+    "role": "DE"
   },
   {
-    "staffNumber": "78471231"
+    "staffNumber": "78471231",
+    "role": "LDTM"
   },
   {
-    "staffNumber": "67128492"
+    "staffNumber": "67128492",
+    "role": "DE"
   }
 ]
