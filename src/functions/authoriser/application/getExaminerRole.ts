@@ -16,7 +16,8 @@ export default async function getExaminerRole(employeeId: EmployeeId): Promise<s
     Key: {
       staffNumber: employeeId,
     },
-    ProjectionExpression: role,
+    ProjectionExpression: '#examinerRole',
+    ExpressionAttributeNames: { '#examinerRole': role },
   }).promise();
 
   // if no result is obtained, they are not an LDTM
