@@ -7,7 +7,7 @@ import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
 import verifyEmployeeId from '../application/verifyEmployeeId';
 import getEmployeeIdKey from '../application/getEmployeeIdKey';
 import { extractEmployeeIdFromToken } from '../application/extractEmployeeIdFromToken';
-import getEmployeeRole from '../application/getEmployeeRole';
+import getExaminerRole from '../application/getExaminerRole';
 
 type Effect = 'Allow' | 'Deny';
 
@@ -47,10 +47,10 @@ function createAuthResult(
   principalId: string, effect: Effect, resource: string,
 ): CustomAuthorizerResult {
   const staffNumber = Array.isArray(employeeId) ? employeeId[0] : employeeId;
-  const role = getEmployeeRole(employeeId);
+  const examinerRole = getExaminerRole(employeeId);
   const context = {
     staffNumber,
-    role,
+    examinerRole,
   };
   return {
     context,
