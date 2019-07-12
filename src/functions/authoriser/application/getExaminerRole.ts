@@ -2,7 +2,7 @@ import { isEmployeeIdEmptyOrNull } from './extractEmployeeIdFromToken';
 import { EmployeeId } from './AdJwtVerifier';
 import { createDynamoClient, getUsersTableName } from './verifyEmployeeId';
 
-export default async function getEmployeeRole(employeeId: EmployeeId): Promise<string> {
+export default async function getExaminerRole(employeeId: EmployeeId): Promise<string> {
   const role: string = 'role';
   const DE: string = 'DE';
 
