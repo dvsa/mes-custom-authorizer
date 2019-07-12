@@ -14,6 +14,7 @@ type Effect = 'Allow' | 'Deny';
 let adJwtVerifier: AdJwtVerifier | null = null;
 let failedAuthLogger: Logger | null = null;
 let employeeId: EmployeeId;
+let examinerRole: string;
 let verifiedToken: VerifiedTokenPayload;
 
 export async function handler(event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> {
@@ -32,6 +33,7 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
   try {
     verifiedToken = await adJwtVerifier.verifyJwt(token);
     employeeId = extractEmployeeIdFromToken(verifiedToken, employeeIdExtKey);
+    examinerRole = await getExaminerRole(employeeId);
     const result = await verifyEmployeeId(verifiedToken, employeeId);
 
     if (!result) {
@@ -47,7 +49,6 @@ function createAuthResult(
   principalId: string, effect: Effect, resource: string,
 ): CustomAuthorizerResult {
   const staffNumber = Array.isArray(employeeId) ? employeeId[0] : employeeId;
-  const examinerRole = getExaminerRole(employeeId);
   const context = {
     staffNumber,
     examinerRole,
