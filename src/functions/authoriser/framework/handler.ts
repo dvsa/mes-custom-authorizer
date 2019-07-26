@@ -33,7 +33,6 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
   try {
     verifiedToken = await adJwtVerifier.verifyJwt(token);
     employeeId = extractEmployeeIdFromToken(verifiedToken, employeeIdExtKey);
-
     if (employeeId === null) {
       throw new Error('Verified Token does not have employeeId');
     }
