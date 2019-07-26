@@ -1,13 +1,9 @@
 import { DynamoDB } from 'aws-sdk';
-import { VerifiedTokenPayload, EmployeeId } from '../application/AdJwtVerifier';
-import { isEmployeeIdEmptyOrNull } from './extractEmployeeIdFromToken';
+import { EmployeeId } from '../application/AdJwtVerifier';
 
 export default async function verifyEmployeeId(
-  verifiedToken: VerifiedTokenPayload, employeeId: EmployeeId): Promise<boolean> {
-
-  if (!employeeId || isEmployeeIdEmptyOrNull(employeeId)) {
-    throw 'Verified Token does not have employeeId';
-  }
+  employeeId: EmployeeId,
+): Promise<boolean> {
 
   const ddb = createDynamoClient();
   const result = await ddb.get({

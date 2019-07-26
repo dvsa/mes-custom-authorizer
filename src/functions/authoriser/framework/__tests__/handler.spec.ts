@@ -26,7 +26,7 @@ describe('handler', () => {
     mockGetExaminerRole.reset();
 
     mockAdJwtVerifier.setup((x: any) => x.then).returns(() => undefined); // TypeMoq limitation
-    mockVerifyEmployeeId.setup(x => x(It.isAny(), It.isAny()))
+    mockVerifyEmployeeId.setup(x => x(It.isAny()))
       .returns(() => Promise.resolve(true));
     mockGetEmployeeIdKey.setup(x => x()).returns(() => 'employeeid');
     mockGetExaminerRole.setup(x => x(It.isAnyString())).returns(() => Promise.resolve('LDTM'));

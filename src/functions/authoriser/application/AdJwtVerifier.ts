@@ -1,7 +1,7 @@
 import { decode, verify } from 'jsonwebtoken';
 
 export type EmployeeIdKey = 'extn.employeeId' | 'employeeid';
-export type EmployeeId = string[] | string | null;
+export type EmployeeId = string;
 
 export interface JsonWebKey {
   readonly kid: string;
