@@ -52,7 +52,7 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
 function createAuthResult(
   principalId: string, effect: Effect, resource: string,
 ): CustomAuthorizerResult {
-  const staffNumber = Array.isArray(employeeId) ? employeeId[0] : employeeId;
+  const staffNumber = employeeId;
   const context = {
     staffNumber,
     examinerRole,
