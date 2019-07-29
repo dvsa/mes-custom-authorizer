@@ -13,7 +13,7 @@ type Effect = 'Allow' | 'Deny';
 
 let adJwtVerifier: AdJwtVerifier | null = null;
 let failedAuthLogger: Logger | null = null;
-let employeeId: EmployeeId;
+let employeeId: EmployeeId | null;
 let examinerRole: string;
 let verifiedToken: VerifiedTokenPayload;
 
@@ -33,8 +33,12 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
   try {
     verifiedToken = await adJwtVerifier.verifyJwt(token);
     employeeId = extractEmployeeIdFromToken(verifiedToken, employeeIdExtKey);
+    if (employeeId === null) {
+      throw new Error('Verified Token does not have employeeId');
+    }
+
     examinerRole = await getExaminerRole(employeeId);
-    const result = await verifyEmployeeId(verifiedToken, employeeId);
+    const result = await verifyEmployeeId(employeeId);
 
     if (!result) {
       return handleError('The employee id was not found', event, methodArn);
@@ -48,7 +52,7 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
 function createAuthResult(
   principalId: string, effect: Effect, resource: string,
 ): CustomAuthorizerResult {
-  const staffNumber = Array.isArray(employeeId) ? employeeId[0] : employeeId;
+  const staffNumber = employeeId;
   const context = {
     staffNumber,
     examinerRole,
