@@ -1,21 +1,26 @@
 {
-    "compilerOptions": {
-      "outDir": "./build",
-      "strict": true,
-      "allowJs": false,
-      "lib": ["es2017"],
-      "target": "es5",
-      "types" : [
-        "node",
-        "jasmine",
-      ],
-      "experimentalDecorators": true
-    },
-    "include": [
-      "./src/**/*",
-      "./spec/**/*"
+  "compilerOptions": {
+    "outDir": "./build",
+    "strict": true,
+    "allowJs": false,
+    "sourceMap": true,
+    "lib": ["es2017"],
+    "target": "es2017",
+    "types" : [
+      "node",
+      "jasmine",
     ],
-    "exclude": [
-      "node_modules"
-    ]
-  }
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "experimentalDecorators": true
+  },
+  "include": [
+    "./typings/**/*",
+    "./src/**/*",
+    "./spec/**/*",
+    "./component-tests/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

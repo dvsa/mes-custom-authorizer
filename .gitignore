@@ -6,6 +6,7 @@
 .Spotlight-V100
 .Trashes
 ehthumbs.db
+/local-test.js
 # Ignore from project
 node_modules
 build
@@ -14,3 +15,7 @@ npm-debug.log
 *.tar
 *.zip
 dist
+.dynamodb
+.serverless/
+.nyc_output/
+coverage/
