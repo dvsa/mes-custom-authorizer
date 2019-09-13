@@ -4,17 +4,15 @@ import AdJwtVerifier, { VerifiedTokenPayload } from '../../application/AdJwtVeri
 import { handler, setFailedAuthLogger } from '../handler';
 import { Logger } from '../createLogger';
 import * as createAdJwtVerifier from '../createAdJwtVerifier';
-import * as verifyEmployeeId from '../../application/verifyEmployeeId';
+import * as verifyExaminer from '../../application/verifyExaminer';
 import * as getEmployeeIdKey from '../../application/getEmployeeIdKey';
-import * as getExaminerRole from '../../application/getExaminerRole';
 import * as extractEmployeeIdFromToken from '../../application/extractEmployeeIdFromToken';
 
 describe('handler', () => {
   const moqFailedAuthLogger = Mock.ofType<Logger>();
   const mockAdJwtVerifier = Mock.ofType<AdJwtVerifier>();
-  const mockVerifyEmployeeId = Mock.ofInstance(verifyEmployeeId.default);
+  const mockverifyExaminer = Mock.ofInstance(verifyExaminer.default);
   const mockGetEmployeeIdKey = Mock.ofInstance(getEmployeeIdKey.default);
-  const mockGetExaminerRole = Mock.ofInstance(getExaminerRole.default);
   const moqExtractEmployeeIdFromToken = Mock.ofInstance(extractEmployeeIdFromToken.extractEmployeeIdFromToken);
   let testCustomAuthorizerEvent: CustomAuthorizerEvent;
 
@@ -23,16 +21,16 @@ describe('handler', () => {
   beforeEach(() => {
     moqFailedAuthLogger.reset();
     mockAdJwtVerifier.reset();
-    mockVerifyEmployeeId.reset();
+    mockverifyExaminer.reset();
     mockGetEmployeeIdKey.reset();
-    mockGetExaminerRole.reset();
     moqExtractEmployeeIdFromToken.reset();
 
     mockAdJwtVerifier.setup((x: any) => x.then).returns(() => undefined); // TypeMoq limitation
-    mockVerifyEmployeeId.setup(x => x(It.isAny()))
-      .returns(() => Promise.resolve(true));
+    mockverifyExaminer.setup(x => x(It.isAny()))
+      .returns(() => Promise.resolve({
+        Item: {},
+      }));
     mockGetEmployeeIdKey.setup(x => x()).returns(() => 'employeeid');
-    mockGetExaminerRole.setup(x => x(It.isAnyString())).returns(() => Promise.resolve('LDTM'));
     moqExtractEmployeeIdFromToken.setup(x => x(It.isAny(), It.isAny())).returns(() => '12345678');
 
     testCustomAuthorizerEvent = {
@@ -44,9 +42,8 @@ describe('handler', () => {
     spyOn(createAdJwtVerifier, 'default')
       .and.returnValue(Promise.resolve(mockAdJwtVerifier.object));
 
-    spyOn(verifyEmployeeId, 'default').and.callFake(mockVerifyEmployeeId.object);
+    spyOn(verifyExaminer, 'default').and.callFake(mockverifyExaminer.object);
     spyOn(getEmployeeIdKey, 'default').and.callFake(mockGetEmployeeIdKey.object);
-    spyOn(getExaminerRole, 'default').and.callFake(mockGetExaminerRole.object);
     spyOn(extractEmployeeIdFromToken, 'extractEmployeeIdFromToken').and.callFake(moqExtractEmployeeIdFromToken.object);
 
     setFailedAuthLogger(moqFailedAuthLogger.object);
@@ -92,8 +89,7 @@ describe('handler', () => {
     // ASSERT
     moqFailedAuthLogger.verify(x => x(It.isAny(), It.isAny()), Times.never());
     moqFailedAuthLogger.verify(x => x(It.isAny(), It.isAny(), It.isAny()), Times.never());
-    mockGetExaminerRole.verify(x => x(It.isValue(testVerifiedTokenPayload.employeeid)), Times.once());
-    mockVerifyEmployeeId.verify(x => x(It.isValue(testVerifiedTokenPayload.employeeid)), Times.once());
+    mockverifyExaminer.verify(x => x(It.isValue(testVerifiedTokenPayload.employeeid)), Times.once());
 
     expect(result.policyDocument.Statement[0].Effect).toEqual('Allow');
     expect((<{ Resource: string }>result.policyDocument.Statement[0]).Resource)

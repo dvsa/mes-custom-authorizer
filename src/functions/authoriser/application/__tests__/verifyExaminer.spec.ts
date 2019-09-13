@@ -1,9 +1,9 @@
 import * as aws from 'aws-sdk-mock';
 
 import { VerifiedTokenPayload, EmployeeIdKey } from '../AdJwtVerifier';
-import verifyEmployeeId from '../verifyEmployeeId';
+import verifyExaminer from '../verifyExaminer';
 
-describe('verifyEmployeeId', () => {
+describe('verifyExaminer', () => {
 
   beforeEach(() => {
     aws.restore('DynamoDB.DocumentClient');
@@ -15,10 +15,10 @@ describe('verifyEmployeeId', () => {
       aws.mock('DynamoDB.DocumentClient', 'get', async params => ({}));
 
       try {
-        const result = await verifyEmployeeId('1435134');
+        const result = await verifyExaminer('1435134');
         expect(result).toBeDefined();
       } catch (err) {
-        fail('verifyEmployeeId should not fail when employeeid is valid');
+        fail('verifyExaminer should not fail when employeeid is valid');
       }
     });
   });
@@ -28,10 +28,12 @@ describe('verifyEmployeeId', () => {
       aws.mock('DynamoDB.DocumentClient', 'get', async params => ({}));
 
       try {
-        const result = await verifyEmployeeId('12345678');
-        expect(result).toBe(false);
+        const result = await verifyExaminer('12345678');
+        console.log('### result');
+        console.log(result);
+        expect(JSON.stringify(result)).toEqual(JSON.stringify({}));
       } catch (err) {
-        fail('verifyEmployeeId should not fail when no employeeId found in Users table');
+        fail('verifyExaminer should not fail when no employeeId found in Users table');
       }
     });
 
@@ -47,10 +49,10 @@ describe('verifyEmployeeId', () => {
       );
 
       try {
-        const result = await verifyEmployeeId('12345678');
+        const result = await verifyExaminer('12345678');
         expect(result).toBeDefined();
       } catch (err) {
-        fail(`verifyEmployeeId should not fail, error: ${err}`);
+        fail(`verifyExaminer should not fail, error: ${err}`);
       }
     });
   });

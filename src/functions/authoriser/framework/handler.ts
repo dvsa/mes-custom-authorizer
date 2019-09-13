@@ -4,10 +4,9 @@ import * as transformMethodArn from '../application/transformMethodArn';
 import { createLogger, Logger } from './createLogger';
 import createAdJwtVerifier from './createAdJwtVerifier';
 import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
-import verifyEmployeeId from '../application/verifyEmployeeId';
+import verifyExaminer from '../application/verifyExaminer';
 import getEmployeeIdKey from '../application/getEmployeeIdKey';
 import { extractEmployeeIdFromToken } from '../application/extractEmployeeIdFromToken';
-import getExaminerRole from '../application/getExaminerRole';
 
 type Effect = 'Allow' | 'Deny';
 
@@ -16,6 +15,8 @@ let failedAuthLogger: Logger | null = null;
 let employeeId: EmployeeId | null;
 let examinerRole: string;
 let verifiedToken: VerifiedTokenPayload;
+const role: string = 'role';
+const DE: string = 'DE';
 
 export async function handler(event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> {
   if (adJwtVerifier === null) {
@@ -37,12 +38,14 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
       throw new Error('Verified Token does not have employeeId');
     }
 
-    examinerRole = await getExaminerRole(employeeId);
-    const result = await verifyEmployeeId(employeeId);
+    const result = await verifyExaminer(employeeId);
 
-    if (!result) {
+    if (!result || !result.Item) {
       return handleError('The employee id was not found', event, methodArn);
     }
+    // Default to DE role
+    examinerRole = result.Item[role] as string || DE;
+
     return createAuthResult(verifiedToken.unique_name, 'Allow', methodArn);
   } catch (err) {
     return handleError(err, event, methodArn);
