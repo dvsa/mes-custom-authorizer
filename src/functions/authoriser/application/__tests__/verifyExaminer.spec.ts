@@ -29,8 +29,6 @@ describe('verifyExaminer', () => {
 
       try {
         const result = await verifyExaminer('12345678');
-        console.log('### result');
-        console.log(result);
         expect(JSON.stringify(result)).toEqual(JSON.stringify({}));
       } catch (err) {
         fail('verifyExaminer should not fail when no employeeId found in Users table');
