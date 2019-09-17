@@ -69,7 +69,7 @@ describe('handler', () => {
     mockAdJwtVerifier.verify(x => x.verifyJwt('example-token'), Times.never());
   });
 
-  it('should return Allow when token verification passes', async () => {
+  it('should return Allow with the correct context when token verification passes', async () => {
     testCustomAuthorizerEvent.authorizationToken = 'example-token';
     testCustomAuthorizerEvent.methodArn =
       'arn:aws:execute-api:region:account-id:api-id/stage-name/HTTP-VERB/resource/path/specifier';
@@ -96,6 +96,7 @@ describe('handler', () => {
       .toEqual('arn:aws:execute-api:region:account-id:api-id/stage-name/*/*');
     expect(result.principalId).toEqual('test-unique_name');
     expect((<AuthResponseContext>result.context).staffNumber).toBe('12345678');
+    expect((<AuthResponseContext>result.context).examinerRole).toBe('DE');
 
     mockAdJwtVerifier.verify(x => x.verifyJwt('example-token'), Times.once());
   });

@@ -2,6 +2,7 @@ import * as aws from 'aws-sdk-mock';
 
 import { VerifiedTokenPayload, EmployeeIdKey } from '../AdJwtVerifier';
 import verifyExaminer from '../verifyExaminer';
+import { DynamoDB } from 'aws-sdk';
 
 describe('verifyExaminer', () => {
 
@@ -24,31 +25,33 @@ describe('verifyExaminer', () => {
   });
 
   describe('dynamo db get', () => {
-    it('should return false when no employeeId found in Users table', async () => {
+    it('should return an empty object when no employeeId found in Users table', async () => {
       aws.mock('DynamoDB.DocumentClient', 'get', async params => ({}));
 
       try {
         const result = await verifyExaminer('12345678');
-        expect(JSON.stringify(result)).toEqual(JSON.stringify({}));
+        expect(result).toEqual({});
       } catch (err) {
         fail('verifyExaminer should not fail when no employeeId found in Users table');
       }
     });
 
-    it('should return the verifed token when employeeId has been found', async () => {
+    it('should return the db item when employeeId has been found', async () => {
+      const ddbItem = {
+        Item: {
+          staffNumber: '12345678',
+          role: 'LDTM',
+        },
+      };
       aws.mock(
         'DynamoDB.DocumentClient',
         'get',
-        async params => ({
-          Item: {
-            staffNumber: '12345678',
-          },
-        }),
+        async params => ddbItem,
       );
 
       try {
         const result = await verifyExaminer('12345678');
-        expect(result).toBeDefined();
+        expect(result).toEqual(ddbItem as DynamoDB.Types.GetItemOutput);
       } catch (err) {
         fail(`verifyExaminer should not fail, error: ${err}`);
       }
