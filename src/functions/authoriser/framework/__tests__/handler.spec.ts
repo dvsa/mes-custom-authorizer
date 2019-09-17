@@ -7,11 +7,12 @@ import * as createAdJwtVerifier from '../createAdJwtVerifier';
 import * as verifyExaminer from '../../application/verifyExaminer';
 import * as getEmployeeIdKey from '../../application/getEmployeeIdKey';
 import * as extractEmployeeIdFromToken from '../../application/extractEmployeeIdFromToken';
+import { DynamoDB } from 'aws-sdk';
 
 describe('handler', () => {
   const moqFailedAuthLogger = Mock.ofType<Logger>();
   const mockAdJwtVerifier = Mock.ofType<AdJwtVerifier>();
-  const mockverifyExaminer = Mock.ofInstance(verifyExaminer.default);
+  const mockVerifyExaminer = Mock.ofInstance(verifyExaminer.default);
   const mockGetEmployeeIdKey = Mock.ofInstance(getEmployeeIdKey.default);
   const moqExtractEmployeeIdFromToken = Mock.ofInstance(extractEmployeeIdFromToken.extractEmployeeIdFromToken);
   let testCustomAuthorizerEvent: CustomAuthorizerEvent;
@@ -21,15 +22,18 @@ describe('handler', () => {
   beforeEach(() => {
     moqFailedAuthLogger.reset();
     mockAdJwtVerifier.reset();
-    mockverifyExaminer.reset();
+    mockVerifyExaminer.reset();
     mockGetEmployeeIdKey.reset();
     moqExtractEmployeeIdFromToken.reset();
 
     mockAdJwtVerifier.setup((x: any) => x.then).returns(() => undefined); // TypeMoq limitation
-    mockverifyExaminer.setup(x => x(It.isAny()))
+    mockVerifyExaminer.setup(x => x(It.isAny()))
       .returns(() => Promise.resolve({
-        Item: {},
-      }));
+        Item: {
+          staffNumber: '12345678',
+          role: 'LDTM',
+        },
+      } as DynamoDB.Types.GetItemOutput));
     mockGetEmployeeIdKey.setup(x => x()).returns(() => 'employeeid');
     moqExtractEmployeeIdFromToken.setup(x => x(It.isAny(), It.isAny())).returns(() => '12345678');
 
@@ -42,7 +46,7 @@ describe('handler', () => {
     spyOn(createAdJwtVerifier, 'default')
       .and.returnValue(Promise.resolve(mockAdJwtVerifier.object));
 
-    spyOn(verifyExaminer, 'default').and.callFake(mockverifyExaminer.object);
+    spyOn(verifyExaminer, 'default').and.callFake(mockVerifyExaminer.object);
     spyOn(getEmployeeIdKey, 'default').and.callFake(mockGetEmployeeIdKey.object);
     spyOn(extractEmployeeIdFromToken, 'extractEmployeeIdFromToken').and.callFake(moqExtractEmployeeIdFromToken.object);
 
@@ -89,14 +93,14 @@ describe('handler', () => {
     // ASSERT
     moqFailedAuthLogger.verify(x => x(It.isAny(), It.isAny()), Times.never());
     moqFailedAuthLogger.verify(x => x(It.isAny(), It.isAny(), It.isAny()), Times.never());
-    mockverifyExaminer.verify(x => x(It.isValue(testVerifiedTokenPayload.employeeid)), Times.once());
+    mockVerifyExaminer.verify(x => x(It.isValue(testVerifiedTokenPayload.employeeid)), Times.once());
 
     expect(result.policyDocument.Statement[0].Effect).toEqual('Allow');
     expect((<{ Resource: string }>result.policyDocument.Statement[0]).Resource)
       .toEqual('arn:aws:execute-api:region:account-id:api-id/stage-name/*/*');
     expect(result.principalId).toEqual('test-unique_name');
     expect((<AuthResponseContext>result.context).staffNumber).toBe('12345678');
-    expect((<AuthResponseContext>result.context).examinerRole).toBe('DE');
+    expect((<AuthResponseContext>result.context).examinerRole).toBe('LDTM');
 
     mockAdJwtVerifier.verify(x => x.verifyJwt('example-token'), Times.once());
   });
