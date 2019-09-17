@@ -149,42 +149,6 @@ describe('handler', () => {
     mockAdJwtVerifier.verify(x => x.verifyJwt('example-token'), Times.once());
   });
 
-  it('should return Deny when no employee is found', async () => {
-    testCustomAuthorizerEvent.authorizationToken = 'example-token';
-    testCustomAuthorizerEvent.methodArn =
-      'arn:aws:execute-api:region:account-id:api-id/stage-name/HTTP-VERB/resource/path/specifier';
-    const testVerifiedTokenPayload: VerifiedTokenPayload = {
-      sub: 'test-subject',
-      unique_name: 'test-unique_name',
-      employeeid: '12345678',
-    };
-
-    mockVerifyExaminer.setup(x => x(It.isAny()))
-      .returns(() => Promise.resolve({} as DynamoDB.Types.GetItemOutput));
-    spyOn(verifyExaminer, 'default').and.callFake(mockVerifyExaminer.object);
-
-    mockAdJwtVerifier.setup(x => x.verifyJwt(It.isAny()))
-      .returns(() => Promise.resolve(testVerifiedTokenPayload));
-
-    // ACT
-    const result = await sut(testCustomAuthorizerEvent);
-
-    // ASSERT
-    expect(result.policyDocument.Statement[0].Effect).toEqual('Deny');
-    expect((<{ Resource: string }>result.policyDocument.Statement[0]).Resource)
-      .toEqual('arn:aws:execute-api:region:account-id:api-id/stage-name/*/*');
-    expect(result.principalId).toEqual('not-authorized');
-
-    mockAdJwtVerifier.verify(x => x.verifyJwt('example-token'), Times.once());
-
-    moqFailedAuthLogger.verify(
-      x => x(
-        It.is<string>(s => /Failed authorization\. Responding with Deny\./.test(s)),
-        'error',
-        It.is<any>(o => /The employee id was not found/.test(o.failedAuthReason))),
-      Times.once());
-  });
-
   it('should return Deny when token verification fails', async () => {
     testCustomAuthorizerEvent.authorizationToken = 'example-token';
     testCustomAuthorizerEvent.methodArn =
@@ -258,6 +222,42 @@ describe('handler', () => {
         It.is<string>(s => /Failed authorization\. Responding with Deny\./.test(s)),
         'error',
         It.is<any>(o => /Verified Token does not have employeeId/.test(o.failedAuthReason))),
+      Times.once());
+  });
+
+  it('should return Deny when no employee is found', async () => {
+    testCustomAuthorizerEvent.authorizationToken = 'example-token';
+    testCustomAuthorizerEvent.methodArn =
+      'arn:aws:execute-api:region:account-id:api-id/stage-name/HTTP-VERB/resource/path/specifier';
+    const testVerifiedTokenPayload: VerifiedTokenPayload = {
+      sub: 'test-subject',
+      unique_name: 'test-unique_name',
+      employeeid: '12345678',
+    };
+
+    mockVerifyExaminer.setup(x => x(It.isAny()))
+      .returns(() => Promise.resolve({} as DynamoDB.Types.GetItemOutput));
+    spyOn(verifyExaminer, 'default').and.callFake(mockVerifyExaminer.object);
+
+    mockAdJwtVerifier.setup(x => x.verifyJwt(It.isAny()))
+      .returns(() => Promise.resolve(testVerifiedTokenPayload));
+
+    // ACT
+    const result = await sut(testCustomAuthorizerEvent);
+
+    // ASSERT
+    expect(result.policyDocument.Statement[0].Effect).toEqual('Deny');
+    expect((<{ Resource: string }>result.policyDocument.Statement[0]).Resource)
+      .toEqual('arn:aws:execute-api:region:account-id:api-id/stage-name/*/*');
+    expect(result.principalId).toEqual('not-authorized');
+
+    mockAdJwtVerifier.verify(x => x.verifyJwt('example-token'), Times.once());
+
+    moqFailedAuthLogger.verify(
+      x => x(
+        It.is<string>(s => /Failed authorization\. Responding with Deny\./.test(s)),
+        'error',
+        It.is<any>(o => /The employee id was not found/.test(o.failedAuthReason))),
       Times.once());
   });
 });
