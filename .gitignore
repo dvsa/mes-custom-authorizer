@@ -19,3 +19,4 @@ dist
 .serverless/
 .nyc_output/
 coverage/
+.env

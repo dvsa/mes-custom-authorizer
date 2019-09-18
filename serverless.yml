@@ -58,3 +58,4 @@ plugins:
   - serverless-webpack
   - serverless-dynamodb-local
   - serverless-offline
+  - serverless-dotenv-plugin

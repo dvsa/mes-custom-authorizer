@@ -1,9 +1,9 @@
 import { DynamoDB } from 'aws-sdk';
-import { EmployeeId } from '../application/AdJwtVerifier';
+import { EmployeeId } from './AdJwtVerifier';
 
-export default async function verifyEmployeeId(
+export default async function verifyExaminer(
   employeeId: EmployeeId,
-): Promise<boolean> {
+): Promise<DynamoDB.Types.GetItemOutput> {
 
   const ddb = createDynamoClient();
   const result = await ddb.get({
@@ -13,11 +13,7 @@ export default async function verifyEmployeeId(
     },
   }).promise();
 
-  if (!result || !result.Item) {
-    return false;
-  }
-
-  return true;
+  return result;
 }
 
 export function createDynamoClient() {
