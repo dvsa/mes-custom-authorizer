@@ -15,7 +15,7 @@ export default async function createAdJwtVerifier(): Promise<AdJwtVerifier> {
   ensureNotNullOrEmpty(applicationId, 'process.env.AZURE_AD_CLIENT_ID');
 
   const openidConfigRes = await nodeFetch(
-    `https://login.microsoftonline.com/${tenantId}/.well-known/openid-configuration`,
+    `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration?appid=${applicationId}`,
   );
   const openidConfig = await openidConfigRes.json();
 
