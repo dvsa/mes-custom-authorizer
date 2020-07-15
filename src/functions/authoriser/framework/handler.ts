@@ -18,7 +18,7 @@ let examinerRole: string;
 let verifiedToken: VerifiedTokenPayload;
 const role: string = 'role';
 const DE: string = 'DE';
-const DELEGATED: string = 'DLG';
+const DLG: string = 'DLG';
 
 export async function handler(event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> {
   if (adJwtVerifier === null) {
@@ -41,7 +41,7 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
     }
 
     if (hasDelegatedExaminerRole(verifiedToken)) {
-      examinerRole = DELEGATED;
+      examinerRole = DLG;
       return createAuthResult(verifiedToken.unique_name, 'Allow', methodArn);
     }
 
