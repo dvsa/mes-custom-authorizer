@@ -21,15 +21,18 @@ export type BaseVerifiedTokenPayload = {
 
 export interface EmployeeIdExtKeyVerifiedTokenPayload extends BaseVerifiedTokenPayload {
   'extn.employeeId': string[];
-  roles: string[];
 }
 
 export interface EmployeeIdKeyVerifiedTokenPayload extends BaseVerifiedTokenPayload {
   employeeid: string;
+}
+
+export interface EmployeeRolesVerifiedTokenPayload extends BaseVerifiedTokenPayload {
   roles: string[];
 }
 
-export type VerifiedTokenPayload = EmployeeIdExtKeyVerifiedTokenPayload | EmployeeIdKeyVerifiedTokenPayload;
+export type VerifiedTokenPayload =
+    EmployeeIdExtKeyVerifiedTokenPayload | EmployeeIdKeyVerifiedTokenPayload | EmployeeRolesVerifiedTokenPayload;
 
 export default class AdJwtVerifier {
   readonly applicationId: string;
