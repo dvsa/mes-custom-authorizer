@@ -7,6 +7,7 @@ import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
 import verifyExaminer from '../application/verifyExaminer';
 import getEmployeeIdKey from '../application/getEmployeeIdKey';
 import { extractEmployeeIdFromToken } from '../application/extractEmployeeIdFromToken';
+import { hasDelegatedExaminerRole } from '../application/extractEmployeeRolesFromToken';
 
 type Effect = 'Allow' | 'Deny';
 
@@ -36,6 +37,10 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
     employeeId = extractEmployeeIdFromToken(verifiedToken, employeeIdExtKey);
     if (employeeId === null) {
       throw new Error('Verified Token does not have employeeId');
+    }
+
+    if (hasDelegatedExaminerRole(verifiedToken)) {
+      return createAuthResult(verifiedToken.unique_name, 'Allow', methodArn);
     }
 
     const result = await verifyExaminer(employeeId);

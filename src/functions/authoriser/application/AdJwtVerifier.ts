@@ -21,10 +21,12 @@ export type BaseVerifiedTokenPayload = {
 
 export interface EmployeeIdExtKeyVerifiedTokenPayload extends BaseVerifiedTokenPayload {
   'extn.employeeId': string[];
+  roles: string[];
 }
 
 export interface EmployeeIdKeyVerifiedTokenPayload extends BaseVerifiedTokenPayload {
   employeeid: string;
+  roles: string[];
 }
 
 export type VerifiedTokenPayload = EmployeeIdExtKeyVerifiedTokenPayload | EmployeeIdKeyVerifiedTokenPayload;

@@ -6,6 +6,7 @@ describe('extractEmployeeIdFromToken', () => {
     sub: 'sub',
     unique_name: 'unique_name',
     'extn.employeeId': ['12345678'],
+    roles: [],
   };
 
   it('should return null if they payload does not have a property for the employeeId key', () => {
