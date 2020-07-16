@@ -81,6 +81,7 @@ describe('handler', () => {
       sub: 'test-subject',
       unique_name: 'test-unique_name',
       employeeid: '12345678',
+      roles: [],
     };
 
     mockVerifyExaminer.setup(x => x(It.isAny()))
@@ -122,6 +123,7 @@ describe('handler', () => {
       sub: 'test-subject',
       unique_name: 'test-unique_name',
       employeeid: '12345678',
+      roles: [],
     };
 
     mockVerifyExaminer.setup(x => x(It.isAny()))
@@ -196,6 +198,7 @@ describe('handler', () => {
       sub: 'test-subject',
       unique_name: 'test-unique_name',
       employeeid: '12345678',
+      roles: [],
     };
     mockVerifyExaminer.setup(x => x(It.isAny()))
       .returns(() => Promise.resolve({
@@ -233,6 +236,7 @@ describe('handler', () => {
       sub: 'test-subject',
       unique_name: 'test-unique_name',
       employeeid: '12345678',
+      roles: [],
     };
 
     mockVerifyExaminer.setup(x => x(It.isAny()))

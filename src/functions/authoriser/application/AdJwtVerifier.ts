@@ -27,7 +27,12 @@ export interface EmployeeIdKeyVerifiedTokenPayload extends BaseVerifiedTokenPayl
   employeeid: string;
 }
 
-export type VerifiedTokenPayload = EmployeeIdExtKeyVerifiedTokenPayload | EmployeeIdKeyVerifiedTokenPayload;
+export interface EmployeeRolesVerifiedTokenPayload extends BaseVerifiedTokenPayload {
+  roles: string[];
+}
+
+export type VerifiedTokenPayload =
+    EmployeeIdExtKeyVerifiedTokenPayload | EmployeeIdKeyVerifiedTokenPayload | EmployeeRolesVerifiedTokenPayload;
 
 export default class AdJwtVerifier {
   readonly applicationId: string;
