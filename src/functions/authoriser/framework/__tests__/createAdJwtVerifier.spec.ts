@@ -118,7 +118,7 @@ describe('createAdJwtVerifier', () => {
 
     // ASSERT
     const expectedOpenIdConnectDiscoveryUrl =
-      'https://login.microsoftonline.com/example-TenantId/.well-known/openid-configuration';
+    'https://login.microsoftonline.com/example-TenantId/v2.0/.well-known/openid-configuration?appid=example-ClientId';
 
     moqNodeFetch.verify(x => x(expectedOpenIdConnectDiscoveryUrl), Times.once());
   });
