@@ -42,7 +42,7 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
 
     if (hasDelegatedExaminerRole(verifiedToken)) {
       examinerRole = DLG;
-      return createAuthResult(verifiedToken.unique_name, 'Allow', methodArn);
+      return createAuthResult(verifiedToken.preferred_username || 'N/A', 'Allow', methodArn);
     }
 
     const result = await verifyExaminer(employeeId);
@@ -53,7 +53,7 @@ export async function handler(event: CustomAuthorizerEvent): Promise<CustomAutho
     // Default to DE role
     examinerRole = result.Item[role] as string || DE;
 
-    return createAuthResult(verifiedToken.unique_name, 'Allow', methodArn);
+    return createAuthResult(verifiedToken.preferred_username || 'N/A', 'Allow', methodArn);
   } catch (err) {
     return handleError(err, event, methodArn);
   }
@@ -84,7 +84,7 @@ function createAuthResult(
 async function handleError(err: any, event: CustomAuthorizerEvent, methodArn: string) {
   const id = employeeId || null;
   const name = verifiedToken ? verifiedToken.name : null;
-  const unique_name = verifiedToken ? verifiedToken.unique_name : null; // tslint:disable-line:variable-name
+  const preferred_username = verifiedToken ? verifiedToken.preferred_username : null; // tslint:disable-line:variable-name max-line-length
 
   const failedAuthDetails = {
     err,
@@ -94,7 +94,7 @@ async function handleError(err: any, event: CustomAuthorizerEvent, methodArn: st
     employee: {
       id,
       name,
-      unique_name,
+      preferred_username,
     },
   };
 

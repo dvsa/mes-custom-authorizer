@@ -25,7 +25,7 @@ describe('AdJwtVerifier', () => {
     moqJwtVerify.setup(x => x(It.isAnyString(), It.isAnyString(), It.isAny()))
       .returns(() => ({
         sub: 'test-subject',
-        unique_name: 'test-unique_name',
+        preferred_username: 'test-preferred-username',
         'extn.employeeId': [
           'employeeId',
         ],
@@ -60,7 +60,7 @@ describe('AdJwtVerifier', () => {
         Times.once());
 
       expect(result.sub).toBe('test-subject');
-      expect(result.unique_name).toBe('test-unique_name');
+      expect(result.preferred_username).toBe('test-preferred-username');
     });
 
     it('uses publicKey over rsaPublicKey if they\'re both defined', async () => {

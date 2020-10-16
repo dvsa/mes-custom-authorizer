@@ -79,7 +79,7 @@ describe('handler', () => {
 
     const testVerifiedTokenPayload: VerifiedTokenPayload = {
       sub: 'test-subject',
-      unique_name: 'test-unique_name',
+      preferred_username: 'test-preferred-username',
       employeeid: '12345678',
       roles: [],
     };
@@ -107,7 +107,7 @@ describe('handler', () => {
     expect(result.policyDocument.Statement[0].Effect).toEqual('Allow');
     expect((<{ Resource: string }>result.policyDocument.Statement[0]).Resource)
       .toEqual('arn:aws:execute-api:region:account-id:api-id/stage-name/*/*');
-    expect(result.principalId).toEqual('test-unique_name');
+    expect(result.principalId).toEqual('test-preferred-username');
     expect((<AuthResponseContext>result.context).staffNumber).toBe('12345678');
     expect((<AuthResponseContext>result.context).examinerRole).toBe('LDTM');
 
@@ -121,7 +121,7 @@ describe('handler', () => {
 
     const testVerifiedTokenPayload: VerifiedTokenPayload = {
       sub: 'test-subject',
-      unique_name: 'test-unique_name',
+      preferred_username: 'test-preferred-username',
       employeeid: '12345678',
       roles: [],
     };
@@ -144,7 +144,7 @@ describe('handler', () => {
     expect(result.policyDocument.Statement[0].Effect).toEqual('Allow');
     expect((<{ Resource: string }>result.policyDocument.Statement[0]).Resource)
       .toEqual('arn:aws:execute-api:region:account-id:api-id/stage-name/*/*');
-    expect(result.principalId).toEqual('test-unique_name');
+    expect(result.principalId).toEqual('test-preferred-username');
     expect((<AuthResponseContext>result.context).staffNumber).toBe('12345678');
     expect((<AuthResponseContext>result.context).examinerRole).toBe('DE');
 
@@ -196,7 +196,7 @@ describe('handler', () => {
     moqExtractEmployeeIdFromToken.setup(x => x(It.isAny(), It.isAny())).returns(() => null);
     const testVerifiedTokenPayload: VerifiedTokenPayload = {
       sub: 'test-subject',
-      unique_name: 'test-unique_name',
+      preferred_username: 'test-preferred-username',
       employeeid: '12345678',
       roles: [],
     };
@@ -234,7 +234,7 @@ describe('handler', () => {
       'arn:aws:execute-api:region:account-id:api-id/stage-name/HTTP-VERB/resource/path/specifier';
     const testVerifiedTokenPayload: VerifiedTokenPayload = {
       sub: 'test-subject',
-      unique_name: 'test-unique_name',
+      preferred_username: 'test-preferred-username',
       employeeid: '12345678',
       roles: [],
     };

@@ -15,7 +15,7 @@ export interface JwksClient {
 
 export type BaseVerifiedTokenPayload = {
   readonly sub: string;
-  readonly unique_name: string;
+  readonly preferred_username: string;
   readonly [index: string]: any;
 };
 
