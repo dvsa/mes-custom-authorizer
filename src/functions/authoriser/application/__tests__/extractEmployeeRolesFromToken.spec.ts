@@ -4,7 +4,7 @@ import { extractEmployeeRolesFromToken, hasDelegatedExaminerRole } from '../extr
 describe('extractEmployeeRolesFromToken', () => {
   const token: Partial<VerifiedTokenPayload> = {
     sub: 'sub',
-    unique_name: 'unique_name',
+    preferred_username: 'preferred_username',
     employeeid: '1234567',
   };
 
@@ -25,7 +25,7 @@ describe('extractEmployeeRolesFromToken', () => {
 describe('hasDelegatedExaminerRole', () => {
   const token: Partial<VerifiedTokenPayload> = {
     sub: 'sub',
-    unique_name: 'unique_name',
+    preferred_username: 'preferred_username',
     employeeid: '1234567',
   };
 

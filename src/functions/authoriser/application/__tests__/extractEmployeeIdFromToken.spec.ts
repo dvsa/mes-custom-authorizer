@@ -4,7 +4,7 @@ import { VerifiedTokenPayload } from '../AdJwtVerifier';
 describe('extractEmployeeIdFromToken', () => {
   const token: VerifiedTokenPayload = {
     sub: 'sub',
-    unique_name: 'unique_name',
+    preferred_username: 'preferred_username',
     'extn.employeeId': ['12345678'],
     roles: [],
   };

@@ -18,7 +18,7 @@ interface AuthoriseStepsContext {
   testAppId: string;
   testIssuer: string;
   testKid: string;
-  testTokenUniqueName: string;
+  testTokenPreferredUsername: string;
   testTokenSubject: string;
   token: string;
   methodArn: string;
@@ -43,7 +43,7 @@ Given('a custom authoriser lambda', function () {
     testAppId: uuid(),
     testIssuer: uuid(),
     testKid: uuid(),
-    testTokenUniqueName: uuid(),
+    testTokenPreferredUsername: uuid(),
     testTokenSubject: uuid(),
     token: 'token-not-set',
     methodArn: 'arn:aws:dummy:method:arn/stage/VERB/some/path',
@@ -142,7 +142,7 @@ Given('the token\'s payload is changed', function () {
   const parts = context.token.split('.');
 
   const payload = base64Decode(parts[1]);
-  payload['unique_name'] = uuid();
+  payload['preferred_username'] = uuid();
   parts[1] = base64Encode(payload).replace('=', '');
 
   context.token = parts.join('.');
@@ -187,7 +187,7 @@ Then('the result should Allow access', function () {
   context.moqFailedAuthLogger.verify(x => x(It.isAny(), It.isAny(), It.isAny()), Times.never());
 
   expect(result.policyDocument.Statement[0].Effect).to.equal('Allow');
-  expect(result.principalId).to.equal(context.testTokenUniqueName);
+  expect(result.principalId).to.equal(context.testTokenPreferredUsername);
 });
 
 Then('the result should Deny access', function () {
@@ -231,7 +231,7 @@ const createToken = (
   audience?: string,
   employeeId?: string): string => {
   const payload = {
-    unique_name: context.testTokenUniqueName,
+    preferred_username: context.testTokenPreferredUsername,
     'extn.employeeId': employeeId ? [employeeId] : undefined,
   };
 

@@ -18,7 +18,7 @@ declare module 'jsonwebtoken' {
 
   export interface TokenPayload {
     readonly sub: string;
-    readonly unique_name: string;
+    readonly preferred_username: string;
     readonly [propName: string]: any;
   }
 
