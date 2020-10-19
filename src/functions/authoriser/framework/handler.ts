@@ -8,6 +8,7 @@ import verifyExaminer from '../application/verifyExaminer';
 import getEmployeeIdKey from '../application/getEmployeeIdKey';
 import { extractEmployeeIdFromToken } from '../application/extractEmployeeIdFromToken';
 import { hasDelegatedExaminerRole } from '../application/extractEmployeeRolesFromToken';
+import { decode } from 'jsonwebtoken';
 
 type Effect = 'Allow' | 'Deny';
 
@@ -82,9 +83,12 @@ function createAuthResult(
 }
 
 async function handleError(err: any, event: CustomAuthorizerEvent, methodArn: string) {
-  const id = employeeId || null;
-  const name = verifiedToken ? verifiedToken.name : null;
-  const preferred_username = verifiedToken ? verifiedToken.preferred_username : null; // tslint:disable-line:variable-name max-line-length
+
+  const employeeIdExtKey: EmployeeIdKey = getEmployeeIdKey();
+  const decodedToken = decode(event.authorizationToken as string) as any;
+  const id = extractEmployeeIdFromToken(decodedToken, employeeIdExtKey) || null;
+  const name = decodedToken ? decodedToken.name : null;
+  const preferred_username = decodedToken ? decodedToken.preferred_username : null; // tslint:disable-line:variable-name max-line-length
 
   const failedAuthDetails = {
     err,
