@@ -88,7 +88,7 @@ async function handleError(err: any, event: CustomAuthorizerEvent, methodArn: st
   const decodedToken = decode(event.authorizationToken as string) as any;
   const id = extractEmployeeIdFromToken(decodedToken, employeeIdExtKey) || null;
   const name = decodedToken ? decodedToken.name : null;
-  const preferred_username = decodedToken ? decodedToken.preferred_username : null; // tslint:disable-line:variable-name max-line-length
+  const preferred_username = decodedToken ? decodedToken.preferred_username : null; // tslint:disable-line:variable-name
 
   const failedAuthDetails = {
     err,
