@@ -63,6 +63,7 @@ export default class AdJwtVerifier {
       audience: this.applicationId,
       issuer: this.issuer,
       clockTolerance: 30, /* seconds */
+      ignoreExpiration: process.env.IGNORE_EXPIRATION === 'true',
     });
   }
 }
