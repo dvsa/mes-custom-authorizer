@@ -11,8 +11,6 @@ describe('createAdJwtVerifier', () => {
   const moqJwksClient = Mock.ofInstance(new jwksRsa.JwksClient({ jwksUri: 'fdjshd' }));
   const moqOpenidConfigResponse = Mock.ofType(nodeFetch.Response);
 
-  console.log(moqJwksClient);
-
   let testOpenidConfig: any;
 
   const sut = createAdJwtVerifier;
