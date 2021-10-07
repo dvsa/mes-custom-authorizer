@@ -8,7 +8,7 @@ import createAdJwtVerifier from '../createAdJwtVerifier';
 describe('createAdJwtVerifier', () => {
   const moqNodeFetch = Mock.ofInstance(nodeFetch.default);
   const moqJwksClientFactory = Mock.ofInstance(jwks.jwksClientFactory);
-  const moqJwksClient = Mock.ofType(jwksRsa.JwksClient);
+  const moqJwksClient = Mock.ofInstance(new jwksRsa.JwksClient({ jwksUri: 'fdjshd' }));
   const moqOpenidConfigResponse = Mock.ofType(nodeFetch.Response);
 
   let testOpenidConfig: any;
@@ -52,7 +52,7 @@ describe('createAdJwtVerifier', () => {
     try {
       result = await sut();
     } catch (err) {
-      errorThrown = err;
+      errorThrown = err as unknown as Error;
     }
 
     // ASSERT
@@ -71,7 +71,7 @@ describe('createAdJwtVerifier', () => {
     try {
       result = await sut();
     } catch (err) {
-      errorThrown = err;
+      errorThrown = err as unknown as Error;
     }
 
     // ASSERT
@@ -94,7 +94,7 @@ describe('createAdJwtVerifier', () => {
       try {
         result = await sut();
       } catch (err) {
-        errorThrown = err;
+        errorThrown = err as unknown as Error;
       }
 
       // ASSERT
@@ -118,7 +118,7 @@ describe('createAdJwtVerifier', () => {
 
     // ASSERT
     const expectedOpenIdConnectDiscoveryUrl =
-    'https://login.microsoftonline.com/example-TenantId/v2.0/.well-known/openid-configuration?appid=example-ClientId';
+      'https://login.microsoftonline.com/example-TenantId/v2.0/.well-known/openid-configuration?appid=example-ClientId';
 
     moqNodeFetch.verify(x => x(expectedOpenIdConnectDiscoveryUrl), Times.once());
   });
