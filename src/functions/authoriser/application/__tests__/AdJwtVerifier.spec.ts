@@ -99,7 +99,7 @@ describe('AdJwtVerifier', () => {
       try {
         await sut.verifyJwt('example-token');
       } catch (err) {
-        errorThrown = err;
+        errorThrown = err as unknown as Error;
       }
 
       // Assert

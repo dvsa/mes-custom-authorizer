@@ -20,3 +20,4 @@ dist
 .nyc_output/
 coverage/
 .env
+tslint-to-eslint-config.log

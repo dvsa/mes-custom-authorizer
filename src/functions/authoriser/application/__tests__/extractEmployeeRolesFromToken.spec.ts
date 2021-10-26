@@ -10,7 +10,7 @@ describe('extractEmployeeRolesFromToken', () => {
 
   it('should return the entire role array when not empty', () => {
     expect(extractEmployeeRolesFromToken({ ...token, roles: ['role1', 'role2'] } as VerifiedTokenPayload))
-        .toEqual(['role1', 'role2']);
+      .toEqual(['role1', 'role2']);
   });
 
   it('should return an empty array when roles key is present but empty', () => {
@@ -31,11 +31,11 @@ describe('hasDelegatedExaminerRole', () => {
 
   it('should return true meaning the delegated examiner role is present', () => {
     expect(hasDelegatedExaminerRole({ ...token, roles: ['DelExaminer'] } as VerifiedTokenPayload))
-        .toEqual(true);
+      .toEqual(true);
   });
 
   it('should return false meaning no delegated examiner role is present', () => {
     expect(hasDelegatedExaminerRole({ ...token, roles: ['SomeExaminer'] } as VerifiedTokenPayload))
-        .toEqual(false);
+      .toEqual(false);
   });
 });
