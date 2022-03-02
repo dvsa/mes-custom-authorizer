@@ -13,7 +13,7 @@ describe('verifyExaminer', () => {
   describe('verifiedToken parameter', () => {
     it('should not throw an exception when employeeid is valid', async () => {
 
-      aws.mock('DynamoDB.DocumentClient', 'get', async params => ({}));
+      aws.mock('DynamoDB.DocumentClient', 'get', async (params: any) => ({}));
 
       try {
         const result = await verifyExaminer('1435134');
@@ -26,7 +26,7 @@ describe('verifyExaminer', () => {
 
   describe('dynamo db get', () => {
     it('should return an empty object when no employeeId found in Users table', async () => {
-      aws.mock('DynamoDB.DocumentClient', 'get', async params => ({}));
+      aws.mock('DynamoDB.DocumentClient', 'get', async (params: any) => ({}));
 
       try {
         const result = await verifyExaminer('12345678');
@@ -46,7 +46,7 @@ describe('verifyExaminer', () => {
       aws.mock(
         'DynamoDB.DocumentClient',
         'get',
-        async params => ddbItem,
+        async (params: any) => ddbItem,
       );
 
       try {
