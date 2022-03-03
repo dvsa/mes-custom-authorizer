@@ -87,14 +87,14 @@ Given('a valid token with employee id of {string}', function (employeeId: string
 
 Given('an employee with id of {string} exists', function (employeeId: string) {
   aws.mock(
-    'DynamoDB.DocumentClient', 'get', async params => ({ Item: { staffNumber: employeeId } }));
+    'DynamoDB.DocumentClient', 'get', async (params: any) => ({ Item: { staffNumber: employeeId } }));
 
   const context: AuthoriseStepsContext = this.context;
   context.restoreDynamoDBDocumentClient = true;
 });
 
 Given('an employee with id of {string} does not exist', function (employeeId: string) {
-  aws.mock('DynamoDB.DocumentClient', 'get', async params => ({}));
+  aws.mock('DynamoDB.DocumentClient', 'get', async (params: any) => ({}));
 
   const context: AuthoriseStepsContext = this.context;
   context.restoreDynamoDBDocumentClient = true;

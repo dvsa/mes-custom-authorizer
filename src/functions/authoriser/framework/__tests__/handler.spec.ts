@@ -62,7 +62,7 @@ describe('handler', () => {
     try {
       result = await sut(testCustomAuthorizerEvent);
     } catch (err) {
-      errorThrown = err;
+      errorThrown = err as unknown as Error;
     }
 
     // ASSERT
@@ -152,6 +152,7 @@ describe('handler', () => {
   });
 
   it('should return Deny when token verification fails', async () => {
+    // eslint-disable-next-line max-len
     testCustomAuthorizerEvent.authorizationToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImtnMkxZczJUMENUaklmajRydDZKSXluZW4zOCJ9.eyJhdWQiOiI5MjNiMDdkNC04MGVlLTQ1MjQtOGYzOC1jMTIzMGFlZmUxNTEiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vNmM0NDhkOTAtNGNhMS00Y2FmLWFiNTktMGEyYWE2N2Q3ODAxL3YyLjAiLCJpYXQiOjE2MDMxMTQyMTUsIm5iZiI6MTYwMzExNDIxNSwiZXhwIjoxNjAzMTE1NzE1LCJhaW8iOiJBVFFBeS84UkFBQUFwNkNvV3VVZXNFV0hjZGRESTBVTXlMMi82OVdMcS9aVGJZTGZhU2RXRC9VYnc1a0drenVXYXNhZGVOWXlsVkVFIiwiYXpwIjoiOTIzYjA3ZDQtODBlZS00NTI0LThmMzgtYzEyMzBhZWZlMTUxIiwiYXpwYWNyIjoiMCIsImdyb3VwcyI6WyI0Y2RjYzBlMy1lYjRhLTQ1NDgtOTU2ZS0wNDY5MDNiN2JjMjAiXSwibmFtZSI6IlRTVCBERVMgRGVsZWdhdGVkRXhhbWluZXIgREVWIDEiLCJvaWQiOiJjZGU1YjljNC1iY2ZlLTQ5OGItYmM3ZC1mODU3MjYzODM3OWUiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJUU1QuREVTLURlbGVnYXRlZC1ERVYxQGR2c2F0ZXN0LWNsb3VkLnVrIiwicmgiOiIwLkFBQUFrSTFFYktGTXIweXJXUW9xcG4xNEFkUUhPNUx1Z0NSRmp6akJJd3J2NFZGSUFIWS4iLCJyb2xlcyI6WyJEZWxFeGFtaW5lciJdLCJzY3AiOiJEaXJlY3RvcnkuQWNjZXNzQXNVc2VyLkFsbCBEaXJlY3RvcnkuUmVhZC5BbGwgZW1haWwgb2ZmbGluZV9hY2Nlc3Mgb3BlbmlkIHByb2ZpbGUgVXNlci5SZWFkIiwic3ViIjoieXdNUHJVdG41c1VQNFJleUpDTjRwLUI5dFh0R2w5aTV6LUxVMmdPVFRzTSIsInRpZCI6IjZjNDQ4ZDkwLTRjYTEtNGNhZi1hYjU5LTBhMmFhNjdkNzgwMSIsInV0aSI6IlpUX2ZOREtjUVVDbmI4VjZ3TDZQQUEiLCJ2ZXIiOiIyLjAiLCJ3aWRzIjpbImI3OWZiZjRkLTNlZjktNDY4OS04MTQzLTc2YjE5NGU4NTUwOSJdLCJlbXBsb3llZWlkIjoiMTAwMDAwMTQifQ.lVKgyWWJSl5HJuz9xpMv-j_cdc5J_Cx7AqnraVVbWWNNTbkNhIUV-qVh1GWi6llwEzjJ8YrK_TZXIumGO5jw1nhZw2a3cqGkqmiyri098nNmTmQBpP730R8WqogjOfwV3zFKQboJpxvZjQVQX7kLZyb1IT3CxE3gS5z31zxCOKr5LqnlvA9z6m55gBNIm2xGm-2-xepn8NYT1YplPwkFL4O0vY14uiyDY9Drwb8FyjAlW1trK1u_jOQS2ylT_zIZ0WG8m61DGoKNAAyl8obIPcVvruNHhwd1EV08Aa8yOPbvAKRw6O9EsTins97Ua7nu6Ln_Illait7Vemk-Mqy_5w';  // tslint:disable: max-line-length
     testCustomAuthorizerEvent.methodArn =
       'arn:aws:execute-api:region:account-id:api-id/stage-name/HTTP-VERB/resource/path/specifier';

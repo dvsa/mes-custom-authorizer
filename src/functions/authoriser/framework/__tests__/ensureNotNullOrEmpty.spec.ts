@@ -6,7 +6,7 @@ describe('ensureNotNullOrEmpty', () => {
       ensureNotNullOrEmpty(val, fieldName);
       return null;
     } catch (err) {
-      return err;
+      return err as unknown as Error;
     }
   };
 

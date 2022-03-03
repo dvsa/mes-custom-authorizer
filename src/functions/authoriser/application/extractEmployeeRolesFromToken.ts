@@ -3,7 +3,7 @@ import { VerifiedTokenPayload } from './AdJwtVerifier';
 const USER_ROLES_KEY: string = 'roles';
 
 enum AccessRole {
-    DELEGATED_EXAMINER = 'DelExaminer',
+  DELEGATED_EXAMINER = 'DelExaminer',
 }
 
 export const extractEmployeeRolesFromToken = (verifiedToken: VerifiedTokenPayload): string[] => {
