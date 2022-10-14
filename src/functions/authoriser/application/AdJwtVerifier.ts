@@ -1,17 +1,8 @@
-import { decode, verify } from 'jsonwebtoken';
+import {decode, JwtHeader, verify} from 'jsonwebtoken';
+import * as JwksRsa from 'jwks-rsa';
 
 export type EmployeeIdKey = 'extn.employeeId' | 'employeeid';
 export type EmployeeId = string;
-
-export interface JsonWebKey {
-  readonly kid: string;
-  readonly publicKey?: string;
-  readonly rsaPublicKey?: string;
-}
-
-export interface JwksClient {
-  getSigningKey(kid: string): Promise<JsonWebKey>;
-}
 
 export type BaseVerifiedTokenPayload = {
   readonly sub: string;
@@ -37,9 +28,9 @@ export type VerifiedTokenPayload =
 export default class AdJwtVerifier {
   readonly applicationId: string;
   readonly issuer: string;
-  readonly jwksClient: JwksClient;
+  readonly jwksClient: JwksRsa.JwksClient;
 
-  constructor(applicationId: string, issuer: string, jwksClient: JwksClient) {
+  constructor(applicationId: string, issuer: string, jwksClient: JwksRsa.JwksClient) {
     this.applicationId = applicationId;
     this.issuer = issuer;
     this.jwksClient = jwksClient;
@@ -51,10 +42,10 @@ export default class AdJwtVerifier {
    * returns - The decoded and verified token.
    */
   async verifyJwt(token: string): Promise<VerifiedTokenPayload> {
-    const kid = decode(token, { complete: true }).header.kid;
-    const signingKey = await this.jwksClient.getSigningKey(kid);
+    const { kid } = decode(token, { complete: true })?.header as JwtHeader;
+    const signingKey = await this.jwksClient.getSigningKey(kid as string);
 
-    const rsaPublicKey = signingKey.publicKey || signingKey.rsaPublicKey || '';
+    const rsaPublicKey = signingKey.getPublicKey() || '';
     if (rsaPublicKey === '') {
       throw new Error(`No public RSA key for kid: ${kid}`);
     }
