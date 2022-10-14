@@ -17,18 +17,31 @@ describe('AdJwtVerifier', () => {
     moqJwksClient.reset();
 
     moqJwtDecode.setup(x => x(It.isAnyString(), It.isAny()))
-      .returns(() => ({ header: { typ: 'test-type', alg: 'test-alg', kid: 'test-kid' } }));
+      .returns(() => ({
+        header: {
+          alg: 'test-alg',
+          typ: 'test-type',
+          kid: 'test-kid',
+        },
+        payload: 'test-string',
+        signature: 'sig',
+      }));
 
     moqJwksClient.setup(x => x.getSigningKey(It.isAnyString()))
       .returns(() => Promise.resolve(testSigningKey));
 
     moqJwtVerify.setup(x => x(It.isAnyString(), It.isAnyString(), It.isAny()))
       .returns(() => ({
-        sub: 'test-subject',
-        preferred_username: 'test-preferred-username',
-        'extn.employeeId': [
-          'employeeId',
-        ],
+        header: {
+          alg: 'test-alg',
+          typ: 'test-type',
+          kid: 'test-kid',
+        },
+        payload: {
+          key: 'key',
+          sub: 'test-subject',
+        },
+        signature: 'sig',
       }));
 
     spyOn(jwt, 'decode').and.callFake(moqJwtDecode.object);

@@ -1,4 +1,4 @@
-import { Given, When, Then, After } from 'cucumber';
+import { Given, When, Then, After } from '@cucumber/cucumber';
 import { Mock, It, Times, IMock } from 'typemoq';
 import { expect } from 'chai';
 import * as crypto from 'crypto';

@@ -17,7 +17,7 @@ export default async function createAdJwtVerifier(): Promise<AdJwtVerifier> {
   const openidConfigRes = await nodeFetch(
     `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration?appid=${applicationId}`,
   );
-  const openidConfig = await openidConfigRes.json();
+  const openidConfig = await openidConfigRes.json() as { error_description: string, jwks_uri: string,  issuer: string };
 
   if (openidConfig.error_description) {
     throw new Error(`Failed to get openid configuration: ${openidConfig.error_description}`);
@@ -30,6 +30,6 @@ export default async function createAdJwtVerifier(): Promise<AdJwtVerifier> {
   });
 
   return new AdJwtVerifier(applicationId, openidConfig.issuer, {
-    getSigningKey: promisify(jwksClient.getSigningKey),
+    getSigningKey: promisify(jwksClient.getSigningKey as JsonWebKey),
   });
 }

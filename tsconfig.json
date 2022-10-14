@@ -4,21 +4,20 @@
     "strict": true,
     "allowJs": false,
     "sourceMap": true,
-    "lib": ["es2017"],
-    "target": "es2017",
+    "lib": [
+      "es2017",
+      "dom"
+    ],
+    "target": "es5",
     "types" : [
       "node",
       "jasmine",
     ],
-    "module": "commonjs",
-    "moduleResolution": "node",
     "experimentalDecorators": true
   },
   "include": [
-    "./typings/**/*",
     "./src/**/*",
-    "./spec/**/*",
-    "./component-tests/**/*"
+    "./spec/**/*"
   ],
   "exclude": [
     "node_modules"
