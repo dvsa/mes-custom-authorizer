@@ -43,9 +43,13 @@ export default class AdJwtVerifier {
    */
   async verifyJwt(token: string): Promise<VerifiedTokenPayload> {
     const { kid } = decode(token, { complete: true })?.header as JwtHeader;
+    console.log('kid', kid);
     const signingKey = await this.jwksClient.getSigningKey(kid as string);
+    console.log('signingKey', signingKey);
 
     const rsaPublicKey = signingKey.getPublicKey() || '';
+
+    console.log('rsaPublicKey', rsaPublicKey);
     if (rsaPublicKey === '') {
       throw new Error(`No public RSA key for kid: ${kid}`);
     }
