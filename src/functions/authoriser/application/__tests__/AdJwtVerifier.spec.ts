@@ -42,6 +42,7 @@ describe('AdJwtVerifier', () => {
         payload: {
           key: 'key',
           sub: 'test-subject',
+          preferred_username: 'test-preferred-username',
         },
         signature: 'sig',
       }));
@@ -49,20 +50,22 @@ describe('AdJwtVerifier', () => {
     spyOn(jwt, 'decode').and.callFake(moqJwtDecode.object);
     spyOn(jwt, 'verify').and.callFake(moqJwtVerify.object);
 
-    testSigningKey = { kid: 'test-kid', publicKey: 'test-publicKey' } as SigningKey;
+    testSigningKey = { kid: 'test-kid', getPublicKey: () => 'test-publicKey' } as SigningKey;
 
     sut = new AdJwtVerifier('test-applicationId', 'test-issuer', moqJwksClient.object);
   });
 
   describe('verifyJwt', () => {
     it('calls dependencies and returns result as expected', async () => {
+      testSigningKey = { kid: 'xyz', getPublicKey(): string { return 'test-publicKey'; } } as SigningKey;
       // ACT
-      const result = await sut.verifyJwt('example-token');
+      const result: any = await sut.verifyJwt('example-token');
 
       // ASSERT
       moqJwtDecode.verify(
         x => x('example-token', It.isObjectWith({ complete: true })),
-        Times.once());
+        Times.once()
+      );
 
       moqJwksClient.verify(x => x.getSigningKey('test-kid'), Times.once());
 
@@ -72,16 +75,16 @@ describe('AdJwtVerifier', () => {
           o.issuer === 'test-issuer' &&
           o.clockTolerance !== undefined &&
           o.clockTolerance > 0)),
-        Times.once());
-
-      expect(result.sub).toBe('test-subject');
-      expect(result.preferred_username).toBe('test-preferred-username');
+        Times.once()
+      );
+      expect(result.payload.sub).toBe('test-subject');
+      expect(result.payload.preferred_username).toBe('test-preferred-username');
     });
 
     it('uses publicKey over rsaPublicKey if they\'re both defined', async () => {
       testSigningKey = {
         kid: 'xyz',
-        publicKey: 'test-publicKey-123',
+        getPublicKey(): string { return 'test-publicKey-123'; }
       } as SigningKey;
 
       // ACT
@@ -92,7 +95,7 @@ describe('AdJwtVerifier', () => {
     });
 
     it('throws an error if publicKey is defined', async () => {
-      testSigningKey = { kid: 'xyz' } as SigningKey;
+      testSigningKey = { kid: 'xyz', getPublicKey(): string { return ''; } } as SigningKey;
 
       let errorThrown: Error = new Error();
 

@@ -3,18 +3,18 @@ import { Mock, It, Times, IMock } from 'typemoq';
 import { expect } from 'chai';
 import * as crypto from 'crypto';
 import { Buffer } from 'buffer';
-import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
+import { APIGatewayTokenAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
 import * as aws from 'aws-sdk-mock';
+import * as JwksRsa from 'jwks-rsa';
 import * as jsonwebtoken from 'jsonwebtoken';
 import * as authoriser from '../../src/functions/authoriser/framework/handler';
 import { Logger } from '../../src/functions/authoriser/framework/createLogger';
-import AdJwtVerifier, { JwksClient } from
-  '../../src/functions/authoriser/application/AdJwtVerifier';
+import AdJwtVerifier from '../../src/functions/authoriser/application/AdJwtVerifier';
 
 interface AuthoriseStepsContext {
-  sut: (event: CustomAuthorizerEvent) => Promise<CustomAuthorizerResult>;
+  sut: (event: APIGatewayTokenAuthorizerEvent) => Promise<CustomAuthorizerResult>;
   moqFailedAuthLogger: IMock<Logger>;
-  moqJwksClient: IMock<JwksClient>;
+  moqJwksClient: IMock<JwksRsa.JwksClient>;
   testAppId: string;
   testIssuer: string;
   testKid: string;
@@ -39,7 +39,7 @@ Given('a custom authoriser lambda', function () {
   const context: AuthoriseStepsContext = this.context = {
     sut: authoriser.handler,
     moqFailedAuthLogger: Mock.ofType<Logger>(),
-    moqJwksClient: Mock.ofType<JwksClient>(),
+    moqJwksClient: Mock.ofType<JwksRsa.JwksClient>(),
     testAppId: uuid(),
     testIssuer: uuid(),
     testKid: uuid(),
@@ -68,8 +68,8 @@ Given('a custom authoriser lambda', function () {
     .setup(x => x.getSigningKey(context.testKid))
     .returns(kid => Promise.resolve({
       kid,
-      rsaPublicKey: testKeys.ourCertificate.publicKey,
-    }));
+      getPublicKey(): string { return testKeys.ourCertificate.publicKey }
+    } as JwksRsa.SigningKey));
 });
 
 Given('a valid token', function () {
@@ -173,7 +173,7 @@ When('the token is verified', async function () {
   const context: AuthoriseStepsContext = this.context;
 
   context.result = await context.sut({
-    type: 'token',
+    type: 'TOKEN',
     authorizationToken: context.token,
     methodArn: context.methodArn,
   });

@@ -1,5 +1,9 @@
 import { Mock, It, Times } from 'typemoq';
-import { CustomAuthorizerEvent, CustomAuthorizerResult, AuthResponseContext } from 'aws-lambda';
+import {
+  CustomAuthorizerResult,
+  AuthResponseContext,
+  APIGatewayTokenAuthorizerEvent,
+} from 'aws-lambda';
 import AdJwtVerifier, { VerifiedTokenPayload } from '../../application/AdJwtVerifier';
 import { handler, setFailedAuthLogger } from '../handler';
 import { Logger } from '../createLogger';
@@ -15,7 +19,7 @@ describe('handler', () => {
   const mockVerifyExaminer = Mock.ofInstance(verifyExaminer.default);
   const mockGetEmployeeIdKey = Mock.ofInstance(getEmployeeIdKey.default);
   const moqExtractEmployeeIdFromToken = Mock.ofInstance(extractEmployeeIdFromToken.extractEmployeeIdFromToken);
-  let testCustomAuthorizerEvent: CustomAuthorizerEvent;
+  let testCustomAuthorizerEvent: APIGatewayTokenAuthorizerEvent;
 
   const sut = handler;
 
@@ -31,7 +35,7 @@ describe('handler', () => {
     moqExtractEmployeeIdFromToken.setup(x => x(It.isAny(), It.isAny())).returns(() => '12345678');
 
     testCustomAuthorizerEvent = {
-      type: 'type',
+      type: 'TOKEN',
       methodArn: '',
       authorizationToken: '',
     };
