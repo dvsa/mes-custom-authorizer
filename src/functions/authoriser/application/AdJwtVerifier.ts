@@ -1,4 +1,4 @@
-import {decode, JwtHeader, verify} from 'jsonwebtoken';
+import { decode, JwtHeader, verify } from 'jsonwebtoken';
 import * as JwksRsa from 'jwks-rsa';
 
 export type EmployeeIdKey = 'extn.employeeId' | 'employeeid';

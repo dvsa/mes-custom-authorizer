@@ -1,4 +1,4 @@
-import {APIGatewayTokenAuthorizerEvent, CustomAuthorizerResult} from 'aws-lambda';
+import { APIGatewayTokenAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
 import AdJwtVerifier, { EmployeeIdKey, EmployeeId, VerifiedTokenPayload } from '../application/AdJwtVerifier';
 import * as transformMethodArn from '../application/transformMethodArn';
 import { createLogger, Logger } from './createLogger';
