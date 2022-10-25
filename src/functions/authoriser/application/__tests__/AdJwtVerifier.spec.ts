@@ -67,7 +67,7 @@ describe('AdJwtVerifier', () => {
       // ACT
       const result = await sut.verifyJwt('example-token');
 
-      // // ASSERT
+      // ASSERT
       moqJwtDecode.verify(
         x => x('example-token', It.isObjectWith({ complete: true })),
         Times.once());
