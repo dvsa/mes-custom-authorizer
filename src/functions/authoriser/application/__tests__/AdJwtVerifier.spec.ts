@@ -1,13 +1,14 @@
 import { Mock, It, Times } from 'typemoq';
 import * as jwt from 'jsonwebtoken';
-import AdJwtVerifier, { JwksClient, JsonWebKey } from '../AdJwtVerifier';
+import * as JwksRsa from 'jwks-rsa';
+import AdJwtVerifier from '../AdJwtVerifier';
 
 describe('AdJwtVerifier', () => {
   const moqJwtDecode = Mock.ofInstance(jwt.decode);
   const moqJwtVerify = Mock.ofInstance(jwt.verify);
-  const moqJwksClient = Mock.ofType<JwksClient>();
+  const moqJwksClient = Mock.ofType<JwksRsa.JwksClient>();
 
-  let testSigningKey: JsonWebKey;
+  let testSigningKey: JwksRsa.SigningKey;
 
   let sut: AdJwtVerifier;
 
@@ -17,13 +18,31 @@ describe('AdJwtVerifier', () => {
     moqJwksClient.reset();
 
     moqJwtDecode.setup(x => x(It.isAnyString(), It.isAny()))
-      .returns(() => ({ header: { typ: 'test-type', alg: 'test-alg', kid: 'test-kid' } }));
+      .returns(() => ({
+        header: {
+          alg: 'test-alg',
+          typ: 'test-type',
+          kid: 'test-kid',
+        },
+        payload: 'test-string',
+        signature: 'sig',
+      }));
 
     moqJwksClient.setup(x => x.getSigningKey(It.isAnyString()))
       .returns(() => Promise.resolve(testSigningKey));
 
     moqJwtVerify.setup(x => x(It.isAnyString(), It.isAnyString(), It.isAny()))
       .returns(() => ({
+        header: {
+          alg: 'test-alg',
+          typ: 'test-type',
+          kid: 'test-kid',
+        },
+        payload: {
+          key: 'key',
+          sub: 'test-subject',
+        },
+        signature: 'sig',
         sub: 'test-subject',
         preferred_username: 'test-preferred-username',
         'extn.employeeId': [
@@ -34,13 +53,17 @@ describe('AdJwtVerifier', () => {
     spyOn(jwt, 'decode').and.callFake(moqJwtDecode.object);
     spyOn(jwt, 'verify').and.callFake(moqJwtVerify.object);
 
-    testSigningKey = { kid: 'test-kid', publicKey: 'test-publicKey' };
+    testSigningKey = {
+      kid: 'test-kid',
+      getPublicKey() { return 'test-publicKey-123'; },
+    } as JwksRsa.SigningKey;
 
     sut = new AdJwtVerifier('test-applicationId', 'test-issuer', moqJwksClient.object);
   });
 
   describe('verifyJwt', () => {
     it('calls dependencies and returns result as expected', async () => {
+
       // ACT
       const result = await sut.verifyJwt('example-token');
 
@@ -52,7 +75,7 @@ describe('AdJwtVerifier', () => {
       moqJwksClient.verify(x => x.getSigningKey('test-kid'), Times.once());
 
       moqJwtVerify.verify(
-        x => x('example-token', 'test-publicKey', It.is<jwt.VerifyOptions>(o =>
+        x => x('example-token', 'test-publicKey-123', It.is<jwt.VerifyOptions>(o =>
           o.audience === 'test-applicationId' &&
           o.issuer === 'test-issuer' &&
           o.clockTolerance !== undefined &&
@@ -64,11 +87,6 @@ describe('AdJwtVerifier', () => {
     });
 
     it('uses publicKey over rsaPublicKey if they\'re both defined', async () => {
-      testSigningKey = {
-        kid: 'xyz',
-        publicKey: 'test-publicKey-123',
-        rsaPublicKey: 'test-rsaPublicKey-456',
-      };
 
       // ACT
       await sut.verifyJwt('example-token');
@@ -77,21 +95,11 @@ describe('AdJwtVerifier', () => {
       moqJwtVerify.verify(x => x(It.isAny(), 'test-publicKey-123', It.isAny()), Times.once());
     });
 
-    it('uses rsaPublicKey if publicKey is not defined', async () => {
+    it('throws an error if publicKey is defined', async () => {
       testSigningKey = {
-        kid: 'xyz',
-        rsaPublicKey: 'test-rsaPublicKey-789',
-      };
-
-      // ACT
-      await sut.verifyJwt('example-token');
-
-      // ASSERT
-      moqJwtVerify.verify(x => x(It.isAny(), 'test-rsaPublicKey-789', It.isAny()), Times.once());
-    });
-
-    it('throws an error is neither publicKey nor rsaPublicKey is defined', async () => {
-      testSigningKey = { kid: 'xyz' };
+        kid: 'test-kid',
+        getPublicKey() { return ''; },
+      } as JwksRsa.SigningKey;
 
       let errorThrown: Error = new Error();
 

@@ -1,4 +1,4 @@
-import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
+import { APIGatewayTokenAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
 import AdJwtVerifier, { EmployeeIdKey, EmployeeId, VerifiedTokenPayload } from '../application/AdJwtVerifier';
 import * as transformMethodArn from '../application/transformMethodArn';
 import { createLogger, Logger } from './createLogger';
@@ -21,7 +21,7 @@ const role: string = 'role';
 const DE: string = 'DE';
 const DLG: string = 'DLG';
 
-export async function handler(event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> {
+export async function handler(event: APIGatewayTokenAuthorizerEvent): Promise<CustomAuthorizerResult> {
   if (adJwtVerifier === null) {
     adJwtVerifier = await createAdJwtVerifier();
   }
@@ -82,7 +82,7 @@ function createAuthResult(
   };
 }
 
-async function handleError(err: any, event: CustomAuthorizerEvent, methodArn: string) {
+async function handleError(err: any, event: APIGatewayTokenAuthorizerEvent, methodArn: string) {
 
   const employeeIdExtKey: EmployeeIdKey = getEmployeeIdKey();
   const decodedToken = decode(event.authorizationToken as string) as any;

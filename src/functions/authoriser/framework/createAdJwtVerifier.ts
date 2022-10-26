@@ -1,8 +1,9 @@
 import { promisify } from 'util';
-import nodeFetch from 'node-fetch';
+import fetch from 'node-fetch';
 import AdJwtVerifier from '../application/AdJwtVerifier';
 import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
 import { jwksClientFactory } from './jwks';
+import * as JwksRsa from 'jwks-rsa';
 
 /**
  * Creates an AdJwtVerifier that can verify the authenticity of Azure Active Directory JWTs.
@@ -14,7 +15,7 @@ export default async function createAdJwtVerifier(): Promise<AdJwtVerifier> {
   ensureNotNullOrEmpty(tenantId, 'process.env.AZURE_AD_TENANT_ID');
   ensureNotNullOrEmpty(applicationId, 'process.env.AZURE_AD_CLIENT_ID');
 
-  const openidConfigRes = await nodeFetch(
+  const openidConfigRes = await fetch(
     `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration?appid=${applicationId}`,
   );
   const openidConfig = await openidConfigRes.json();
@@ -31,5 +32,5 @@ export default async function createAdJwtVerifier(): Promise<AdJwtVerifier> {
 
   return new AdJwtVerifier(applicationId, openidConfig.issuer, {
     getSigningKey: promisify(jwksClient.getSigningKey),
-  });
+  } as JwksRsa.JwksClient);
 }
