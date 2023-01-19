@@ -52,7 +52,7 @@
     "rimraf": "^3.0.2",
     "serverless": "^3.26.0",
     "serverless-dotenv-plugin": "^4.0.2",
-    "serverless-dynamodb-local": "^0.2.40",
+    "serverless-dynamodb-local": "^1.0.2",
     "serverless-offline": "^11.1.2",
     "serverless-webpack": "^5.10.0",
     "sinon": "^14.0.1",
