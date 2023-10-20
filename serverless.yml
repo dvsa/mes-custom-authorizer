@@ -13,13 +13,6 @@ package:
   individually: true
 
 functions:
-  local-authorisation-tester:
-    handler: local/handler.handler
-    events:
-      - http:
-          path: 'authoriser'
-          method: get
-          authorizer: authoriser
   authoriser:
     handler: src/functions/authoriser/framework/handler.handler
 
