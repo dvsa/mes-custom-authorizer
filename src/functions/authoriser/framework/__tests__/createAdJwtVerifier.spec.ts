@@ -2,10 +2,9 @@ import { Mock, It, Times } from 'typemoq';
 import * as jwksRsa from 'jwks-rsa';
 import * as jwks from '../jwks';
 import AdJwtVerifier from '../../application/AdJwtVerifier';
-import createAdJwtVerifier, {FetchConfigService, IFetchConfigService} from '../createAdJwtVerifier';
+import createAdJwtVerifier, * as verifier from '../createAdJwtVerifier';
 
 describe('createAdJwtVerifier', () => {
-  const fetchConfigMock = Mock.ofType<IFetchConfigService>();
   const moqJwksClientFactory = Mock.ofInstance(jwks.jwksClientFactory);
   const moqJwksClient = Mock.ofInstance(new jwksRsa.JwksClient({ jwksUri: 'fdjshd' }));
 
@@ -15,17 +14,12 @@ describe('createAdJwtVerifier', () => {
   let spy: jasmine.Spy;
 
   beforeEach(() => {
-    fetchConfigMock.reset();
     moqJwksClientFactory.reset();
     moqJwksClient.reset();
 
     moqJwksClientFactory
       .setup(x => x(It.isAny()))
       .returns(() => moqJwksClient.object);
-
-    fetchConfigMock
-      .setup(f => f.fetchConfig(It.isAnyString(), It.isAnyString()))
-      .returns(async () => new Response('Mock Response'));
 
     spyOn(jwks, 'jwksClientFactory').and.callFake(moqJwksClientFactory.object);
 
@@ -34,7 +28,7 @@ describe('createAdJwtVerifier', () => {
       jwks_uri: 'example-jwks_uri',
     };
 
-    spy = spyOn(FetchConfigService, 'fetchConfig').and.callFake(() => {
+    spy = spyOn(verifier, 'fetchConfig').and.callFake(() => {
       return Promise.resolve({
         json() {
           return Promise.resolve({

@@ -14,7 +14,7 @@ export default async function createAdJwtVerifier(): Promise<AdJwtVerifier> {
   ensureNotNullOrEmpty(tenantId, 'process.env.AZURE_AD_TENANT_ID');
   ensureNotNullOrEmpty(applicationId, 'process.env.AZURE_AD_CLIENT_ID');
 
-  const openidConfigRes = await FetchConfigService.fetchConfig(tenantId, applicationId);
+  const openidConfigRes = await fetchConfig(tenantId, applicationId);
   const openidConfig = await openidConfigRes.json();
 
   if (openidConfig.error_description) {
@@ -32,14 +32,8 @@ export default async function createAdJwtVerifier(): Promise<AdJwtVerifier> {
   } as JwksRsa.JwksClient);
 }
 
-export const FetchConfigService: IFetchConfigService = {
-  fetchConfig: (tenantId: string, applicationId: string) => {
-    return fetch(
-      `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration?appid=${applicationId}`,
-    );
-  },
+export const fetchConfig = (tenantId: string, applicationId: string) => {
+  return fetch(
+    `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration?appid=${applicationId}`,
+  );
 };
-
-export interface IFetchConfigService {
-  fetchConfig(tenantId: string, applicationId: string): Promise<Response>;
-}
