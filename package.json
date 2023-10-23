@@ -9,6 +9,9 @@
     "type": "git",
     "url": "git+https://github.com/dvsa/mes-custom-authorizer"
   },
+  "bugs": {
+    "url": "https://github.com/dvsa/mes-custom-authorizer/issues"
+  },
   "scripts": {
     "clean": "rimraf build artefacts",
     "compile": "tsc",
@@ -24,45 +27,43 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "jsonwebtoken": "^9.0.0",
-    "jwks-rsa": "^3.0.1",
-    "node-fetch": "^2.6.6"
+    "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.1.0"
   },
   "devDependencies": {
-    "@cucumber/cucumber": "^9.3.0",
-    "@types/aws-lambda": "^8.10.108",
-    "@types/chai": "^4.3.3",
-    "@types/jasmine": "^4.3.0",
-    "@types/node": "^16.14.0",
-    "@types/node-fetch": "^2.6.2",
-    "@types/sinon": "^10.0.13",
-    "@typescript-eslint/eslint-plugin": "^5.41.0",
-    "@typescript-eslint/parser": "^5.41.0",
+    "@cucumber/cucumber": "^10.0.1",
+    "@types/aws-lambda": "^8.10.125",
+    "@types/chai": "^4.3.9",
+    "@types/jasmine": "^5.1.1",
+    "@types/node": "^18.18.6",
+    "@types/sinon": "^10.0.20",
+    "@typescript-eslint/eslint-plugin": "^6.8.0",
+    "@typescript-eslint/parser": "^6.8.0",
     "aws-lambda-test-utils": "^1.3.0",
-    "aws-sdk": "^2.1366.0",
+    "aws-sdk": "^2.1478.0",
     "aws-sdk-mock": "^5.8.0",
-    "chai": "^4.3.6",
-    "eslint": "^8.26.0",
-    "eslint-plugin-import": "^2.26.0",
-    "husky": "^8.0.1",
-    "jasmine": "^4.4.0",
+    "chai": "^4.3.10",
+    "eslint": "^8.52.0",
+    "eslint-plugin-import": "^2.29.0",
+    "husky": "^8.0.3",
+    "jasmine": "^5.1.0",
     "jasmine-spec-reporter": "^7.0.0",
     "npm-run-all": "^4.1.5",
     "nyc": "^15.1.0",
-    "rimraf": "^3.0.2",
-    "serverless": "^3.26.0",
-    "serverless-dotenv-plugin": "^4.0.2",
-    "serverless-dynamodb-local": "^0.2.40",
-    "serverless-offline": "^11.1.2",
-    "serverless-webpack": "^5.10.0",
-    "sinon": "^14.0.1",
+    "rimraf": "^5.0.5",
+    "serverless": "^3.35.2",
+    "serverless-dotenv-plugin": "^6.0.0",
+    "serverless-dynamodb": "^0.2.47",
+    "serverless-offline": "^13.2.0",
+    "serverless-webpack": "^5.13.0",
+    "sinon": "^17.0.0",
     "source-map-support": "^0.5.21",
-    "ts-loader": "^9.4.1",
+    "ts-loader": "^9.5.0",
     "ts-node": "^10.9.1",
     "typemoq": "^2.1.0",
-    "typescript": "^4.8.4",
-    "webpack": "^5.74.0",
-    "webpack-cli": "^4.10.0",
+    "typescript": "^5.2.2",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
     "yamljs": "^0.3.0"
   },
   "nyc": {
@@ -81,8 +82,5 @@
     "sourceMap": true,
     "produce-source-map": true,
     "instrument": true
-  },
-  "bugs": {
-    "url": "https://github.com/dvsa/mes-custom-authorizer/issues"
   }
 }

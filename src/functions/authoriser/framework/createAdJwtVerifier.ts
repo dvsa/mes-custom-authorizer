@@ -1,9 +1,8 @@
 import { promisify } from 'util';
-import fetch from 'node-fetch';
+import * as JwksRsa from 'jwks-rsa';
 import AdJwtVerifier from '../application/AdJwtVerifier';
 import ensureNotNullOrEmpty from './ensureNotNullOrEmpty';
 import { jwksClientFactory } from './jwks';
-import * as JwksRsa from 'jwks-rsa';
 
 /**
  * Creates an AdJwtVerifier that can verify the authenticity of Azure Active Directory JWTs.
@@ -15,10 +14,8 @@ export default async function createAdJwtVerifier(): Promise<AdJwtVerifier> {
   ensureNotNullOrEmpty(tenantId, 'process.env.AZURE_AD_TENANT_ID');
   ensureNotNullOrEmpty(applicationId, 'process.env.AZURE_AD_CLIENT_ID');
 
-  const openidConfigRes = await fetch(
-    `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration?appid=${applicationId}`,
-  );
-  const openidConfig: any = await openidConfigRes.json();
+  const openidConfigRes = await FetchConfigService.fetchConfig(tenantId, applicationId);
+  const openidConfig = await openidConfigRes.json();
 
   if (openidConfig.error_description) {
     throw new Error(`Failed to get openid configuration: ${openidConfig.error_description}`);
@@ -33,4 +30,16 @@ export default async function createAdJwtVerifier(): Promise<AdJwtVerifier> {
   return new AdJwtVerifier(applicationId, openidConfig.issuer, {
     getSigningKey: promisify(jwksClient.getSigningKey),
   } as JwksRsa.JwksClient);
+}
+
+export const FetchConfigService: IFetchConfigService = {
+  fetchConfig: (tenantId: string, applicationId: string) => {
+    return fetch(
+      `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration?appid=${applicationId}`,
+    );
+  },
+};
+
+export interface IFetchConfigService {
+  fetchConfig(tenantId: string, applicationId: string): Promise<Response>;
 }

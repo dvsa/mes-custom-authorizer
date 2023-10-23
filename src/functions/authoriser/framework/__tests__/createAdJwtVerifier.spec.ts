@@ -1,42 +1,48 @@
 import { Mock, It, Times } from 'typemoq';
-import * as nodeFetch from 'node-fetch';
 import * as jwksRsa from 'jwks-rsa';
 import * as jwks from '../jwks';
 import AdJwtVerifier from '../../application/AdJwtVerifier';
-import createAdJwtVerifier from '../createAdJwtVerifier';
+import createAdJwtVerifier, {FetchConfigService, IFetchConfigService} from '../createAdJwtVerifier';
 
 describe('createAdJwtVerifier', () => {
-  const moqNodeFetch = Mock.ofInstance(nodeFetch.default);
+  const fetchConfigMock = Mock.ofType<IFetchConfigService>();
   const moqJwksClientFactory = Mock.ofInstance(jwks.jwksClientFactory);
   const moqJwksClient = Mock.ofInstance(new jwksRsa.JwksClient({ jwksUri: 'fdjshd' }));
-  const moqOpenidConfigResponse = Mock.ofType(nodeFetch.Response);
 
-  let testOpenidConfig: any;
+  let testOpenidConfig = {} as { [key: string]: string };
 
   const sut = createAdJwtVerifier;
+  let spy: jasmine.Spy;
 
   beforeEach(() => {
-    moqNodeFetch.reset();
+    fetchConfigMock.reset();
     moqJwksClientFactory.reset();
     moqJwksClient.reset();
-    moqOpenidConfigResponse.reset();
 
-    moqNodeFetch.setup(x => x(It.isAny()))
-      .returns(() => Promise.resolve(moqOpenidConfigResponse.object));
-
-    moqJwksClientFactory.setup(x => x(It.isAny()))
+    moqJwksClientFactory
+      .setup(x => x(It.isAny()))
       .returns(() => moqJwksClient.object);
 
-    moqOpenidConfigResponse.setup(x => x.json())
-      .returns(() => Promise.resolve(testOpenidConfig));
+    fetchConfigMock
+      .setup(f => f.fetchConfig(It.isAnyString(), It.isAnyString()))
+      .returns(async () => new Response('Mock Response'));
+
+    spyOn(jwks, 'jwksClientFactory').and.callFake(moqJwksClientFactory.object);
 
     testOpenidConfig = {
       issuer: 'example-issuer',
       jwks_uri: 'example-jwks_uri',
     };
 
-    spyOn(nodeFetch, 'default').and.callFake(moqNodeFetch.object);
-    spyOn(jwks, 'jwksClientFactory').and.callFake(moqJwksClientFactory.object);
+    spy = spyOn(FetchConfigService, 'fetchConfig').and.callFake(() => {
+      return Promise.resolve({
+        json() {
+          return Promise.resolve({
+            ...testOpenidConfig,
+          });
+        },
+      } as Response);
+    });
 
     process.env.AZURE_AD_TENANT_ID = 'example-TenantId';
     process.env.AZURE_AD_CLIENT_ID = 'example-ClientId';
@@ -56,8 +62,7 @@ describe('createAdJwtVerifier', () => {
     }
 
     // ASSERT
-    expect(errorThrown)
-      .toEqual(new Error('process.env.AZURE_AD_TENANT_ID is null or empty'));
+    expect(errorThrown).toEqual(new Error('process.env.AZURE_AD_TENANT_ID is null or empty'));
     expect(result).toBeUndefined();
   });
 
@@ -75,33 +80,29 @@ describe('createAdJwtVerifier', () => {
     }
 
     // ASSERT
-    expect(errorThrown)
-      .toEqual(new Error('process.env.AZURE_AD_CLIENT_ID is null or empty'));
+    expect(errorThrown).toEqual(new Error('process.env.AZURE_AD_CLIENT_ID is null or empty'));
     expect(result).toBeUndefined();
   });
 
-  it(
-    'throws an error if the OpenID response json contains the `error_description` field',
-    async () => {
-      testOpenidConfig = {
-        error_description: 'Example error in OpenID Config',
-      };
+  it('throws an error if the OpenID response json contains the `error_description` field', async () => {
+    testOpenidConfig = {
+      error_description: 'Example error in OpenID Config',
+    };
 
-      let errorThrown: Error | undefined;
-      let result: AdJwtVerifier | undefined;
+    let errorThrown: Error | undefined;
+    let result: AdJwtVerifier | undefined;
 
-      // ACT
-      try {
-        result = await sut();
-      } catch (err) {
-        errorThrown = err as unknown as Error;
-      }
+    // ACT
+    try {
+      result = await sut();
+    } catch (err) {
+      errorThrown = err as unknown as Error;
+    }
 
-      // ASSERT
-      expect(errorThrown).toEqual(
-        new Error('Failed to get openid configuration: Example error in OpenID Config'));
-      expect(result).toBeUndefined();
-    });
+    // ASSERT
+    expect(errorThrown).toEqual(new Error('Failed to get openid configuration: Example error in OpenID Config'));
+    expect(result).toBeUndefined();
+  });
 
   it('returns an `AdJwtVerifier` with the expected applicationId and issuer', async () => {
     // ACT
@@ -115,12 +116,7 @@ describe('createAdJwtVerifier', () => {
   it('calls the expected OpenID Connect discovery URL for the expected tenant', async () => {
     // ACT
     await sut();
-
-    // ASSERT
-    const expectedOpenIdConnectDiscoveryUrl =
-      'https://login.microsoftonline.com/example-TenantId/v2.0/.well-known/openid-configuration?appid=example-ClientId';
-
-    moqNodeFetch.verify(x => x(expectedOpenIdConnectDiscoveryUrl), Times.once());
+    expect(spy).toHaveBeenCalledWith('example-TenantId', 'example-ClientId');
   });
 
   it('creates a `jwksClient` as expected', async () => {
