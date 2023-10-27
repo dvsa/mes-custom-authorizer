@@ -1,5 +1,6 @@
 import {GetCommand} from '@aws-sdk/lib-dynamodb';
 import {DynamoDBClient, DynamoDBClientConfig} from '@aws-sdk/client-dynamodb';
+import {warn} from '@dvsa/mes-microservice-common/application/utils/logger';
 import {EmployeeId} from './AdJwtVerifier';
 
 export default async function verifyExaminer(
@@ -19,7 +20,7 @@ export function createDynamoClient() {
   const opts = { region: 'eu-west-1' } as DynamoDBClientConfig;
 
   if (process.env.IS_OFFLINE === 'true') {
-    // warn('Using SLS offline');
+    warn('Using SLS offline');
     opts.endpoint = process.env.DDB_OFFLINE_ENDPOINT;
   }
 
