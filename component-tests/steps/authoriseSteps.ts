@@ -4,7 +4,6 @@ import { expect } from 'chai';
 import * as crypto from 'crypto';
 import { Buffer } from 'buffer';
 import { APIGatewayTokenAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
-// import * as aws from 'aws-sdk-mock';
 import {mockClient} from 'aws-sdk-client-mock';
 import * as JwksRsa from 'jwks-rsa';
 import * as jsonwebtoken from 'jsonwebtoken';
