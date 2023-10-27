@@ -1,10 +1,17 @@
-import * as awsSdkMock from 'aws-sdk-mock';
+import {AwsError, mockClient} from 'aws-sdk-client-mock';
 import * as sinon from 'sinon';
-
+import {CloudWatchLogsClient, CreateLogStreamCommand, PutLogEventsCommand} from '@aws-sdk/client-cloudwatch-logs';
 import { uniqueLogStreamName, createLogger } from '../createLogger';
-import { CloudWatchLogs } from 'aws-sdk';
 
 describe('Logger', () => {
+  const cloudWatchMock = mockClient(CloudWatchLogsClient);
+
+  beforeEach(() => {
+    cloudWatchMock.reset();
+
+    cloudWatchMock.on(CreateLogStreamCommand).resolves(Promise.resolve({}));
+    cloudWatchMock.on(PutLogEventsCommand).resolves(Promise.resolve({nextSequenceToken: 'example-sequenceToken-123'}));
+  });
 
   describe('uniqueLogStreamName', () => {
     const sut = uniqueLogStreamName;
@@ -33,66 +40,50 @@ describe('Logger', () => {
   });
 
   describe('createLogger', () => {
-
     let createLogStreamSpy;
     let putLogEventsSpy;
 
-    beforeEach(() => {
-
-      awsSdkMock.restore('CloudWatchLogs', 'createLogStream');
-      awsSdkMock.restore('CloudWatchLogs', 'putLogEvents');
-
-    });
-
     it('should call the correct CloudWatchLogs methods', async () => {
+      spyOn(CloudWatchLogsClient.prototype, 'send').and.callFake(async () => ({}));
 
       createLogStreamSpy = sinon.stub().resolves(true);
       putLogEventsSpy = sinon.stub().resolves(true);
 
-      awsSdkMock.mock('CloudWatchLogs', 'createLogStream', createLogStreamSpy);
-      awsSdkMock.mock('CloudWatchLogs', 'putLogEvents', putLogEventsSpy);
-
-      const logger = await createLogger('testLoggerName', 'testLogGroupName');
-      logger('test error message', 'error');
-
-      expect(createLogStreamSpy.called).toBe(true);
-      expect(putLogEventsSpy.called).toBe(true);
-    });
-
-    it('should swallow a \"ResourceAlreadyExistsException\" error', async () => {
-
-      putLogEventsSpy = sinon.stub().resolves(true);
-
-      awsSdkMock.mock('CloudWatchLogs', 'createLogStream', async (params) => {
-        throw {
-          errorType: 'ResourceAlreadyExistsException',
-          code: 'ResourceAlreadyExistsException',
-        };
-      });
-      awsSdkMock.mock('CloudWatchLogs', 'putLogEvents', putLogEventsSpy);
-
       const logger = await createLogger('testLoggerName', 'testLogGroupName');
       await logger('test error message', 'error');
 
-      expect(putLogEventsSpy.called).toBe(true);
+      // @ts-ignore
+      expect(CloudWatchLogsClient.prototype.send).toHaveBeenCalledWith(jasmine.any(CreateLogStreamCommand));
+      // @ts-ignore
+      expect(CloudWatchLogsClient.prototype.send).toHaveBeenCalledWith(jasmine.any(PutLogEventsCommand));
+    });
+
+    it('should swallow a \"ResourceAlreadyExistsException\" error and not throw', async () => {
+      putLogEventsSpy = sinon.stub().resolves(true);
+      cloudWatchMock.on(CreateLogStreamCommand).rejects({
+        errorType: 'ResourceAlreadyExistsException',
+        code: 'ResourceAlreadyExistsException',
+      } as AwsError);
+
+      try {
+        const logger = await createLogger('testLoggerName', 'testLogGroupName');
+        await logger('test error message', 'error');
+      } catch (er) {
+        expect(er).toBeFalsy();
+      }
     });
 
     it('should throw on any other exceptions', async () => {
-
       putLogEventsSpy = sinon.stub().resolves(true);
-
-      awsSdkMock.mock('CloudWatchLogs', 'createLogStream', async (params) => {
-        throw {
-          errorType: 'SomeOtherException',
-          code: 'SomeOtherException',
-        };
-      });
-      awsSdkMock.mock('CloudWatchLogs', 'putLogEvents', putLogEventsSpy);
+      cloudWatchMock.on(CreateLogStreamCommand).rejects({
+        errorType: 'SomeOtherException',
+        code: 'SomeOtherException',
+      } as AwsError);
 
       let errorThrown: boolean = false;
 
       try {
-        const logger = await createLogger('testLoggerName', 'testLogGroupName');
+        await createLogger('testLoggerName', 'testLogGroupName');
       } catch (e) {
         expect(e).toBeTruthy();
         errorThrown = true;

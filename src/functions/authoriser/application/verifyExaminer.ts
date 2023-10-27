@@ -1,25 +1,30 @@
-import { DynamoDB } from 'aws-sdk';
-import { EmployeeId } from './AdJwtVerifier';
+import {GetCommand} from '@aws-sdk/lib-dynamodb';
+import {DynamoDBClient, DynamoDBClientConfig} from '@aws-sdk/client-dynamodb';
+import {warn} from '@dvsa/mes-microservice-common/application/utils/logger';
+import {EmployeeId} from './AdJwtVerifier';
 
 export default async function verifyExaminer(
   employeeId: EmployeeId,
-): Promise<DynamoDB.Types.GetItemOutput> {
-
+) {
   const ddb = createDynamoClient();
-  const result = await ddb.get({
-    TableName: getUsersTableName(),
-    Key: {
-      staffNumber: employeeId,
-    },
-  }).promise();
 
-  return result;
+  return await ddb.send(
+    new GetCommand({
+      TableName: getUsersTableName(),
+      Key: { staffNumber: employeeId },
+    })
+  );
 }
 
 export function createDynamoClient() {
-  return process.env.IS_OFFLINE
-    ? new DynamoDB.DocumentClient({ endpoint: 'http://localhost:8000' })
-    : new DynamoDB.DocumentClient();
+  const opts = { region: 'eu-west-1' } as DynamoDBClientConfig;
+
+  if (process.env.IS_OFFLINE === 'true') {
+    warn('Using SLS offline');
+    opts.endpoint = process.env.DDB_OFFLINE_ENDPOINT;
+  }
+
+  return new DynamoDBClient(opts);
 }
 
 export function getUsersTableName(): string {

@@ -4,12 +4,14 @@ import { expect } from 'chai';
 import * as crypto from 'crypto';
 import { Buffer } from 'buffer';
 import { APIGatewayTokenAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
-import * as aws from 'aws-sdk-mock';
+import {mockClient} from 'aws-sdk-client-mock';
 import * as JwksRsa from 'jwks-rsa';
 import * as jsonwebtoken from 'jsonwebtoken';
 import * as authoriser from '../../src/functions/authoriser/framework/handler';
 import { Logger } from '../../src/functions/authoriser/framework/createLogger';
 import AdJwtVerifier from '../../src/functions/authoriser/application/AdJwtVerifier';
+import {DynamoDBClient} from '@aws-sdk/client-dynamodb';
+import {GetCommand} from '@aws-sdk/lib-dynamodb';
 
 interface AuthoriseStepsContext {
   sut: (event: APIGatewayTokenAuthorizerEvent) => Promise<CustomAuthorizerResult>;
@@ -25,17 +27,18 @@ interface AuthoriseStepsContext {
   result?: CustomAuthorizerResult;
   restoreDynamoDBDocumentClient?: boolean;
 }
+const dynamoDbClientMock = mockClient(DynamoDBClient);
 
 After(function () {
   const context: AuthoriseStepsContext = this.context;
   if (context.restoreDynamoDBDocumentClient) {
-    aws.restore('DynamoDB.DocumentClient');
+    dynamoDbClientMock.reset();
   }
   // Clear out environment variables
   delete process.env.EMPLOYEE_ID_EXT_KEY;
 });
 
-Given('a custom authoriser lambda', function () {
+Given('a custom authoriser lambda', async function () {
   const context: AuthoriseStepsContext = this.context = {
     sut: authoriser.handler,
     moqFailedAuthLogger: Mock.ofType<Logger>(),
@@ -50,7 +53,7 @@ Given('a custom authoriser lambda', function () {
   };
 
   // Override the Logger, so we can verify calls to it.
-  authoriser.setFailedAuthLogger(context.moqFailedAuthLogger.object);
+  await authoriser.setFailedAuthLogger(context.moqFailedAuthLogger.object);
 
   // Mock out environment variables
   process.env.EMPLOYEE_ID_EXT_KEY = 'extn.employeeId';
@@ -60,15 +63,17 @@ Given('a custom authoriser lambda', function () {
   const adJwtVerifier = new AdJwtVerifier(
     context.testAppId,
     context.testIssuer,
-    context.moqJwksClient.object);
-  authoriser.setAdJwtVerifier(adJwtVerifier);
+    context.moqJwksClient.object,
+  );
+
+  await authoriser.setAdJwtVerifier(adJwtVerifier);
 
   // Setup out mock JwksClient so that it returns our test public key
   context.moqJwksClient
     .setup(x => x.getSigningKey(context.testKid))
     .returns(kid => Promise.resolve({
       kid,
-      getPublicKey(): string { return testKeys.ourCertificate.publicKey }
+      getPublicKey(): string { return testKeys.ourCertificate.publicKey; },
     } as JwksRsa.SigningKey));
 });
 
@@ -80,21 +85,20 @@ Given('a valid token', function () {
 Given('a valid token with employee id of {string}', function (employeeId: string) {
   const context: AuthoriseStepsContext = this.context;
 
-  // using undefined for the already existing paramters which is used in other places.
+  // using undefined for the already existing parameters which is used in other places.
   context.token = createToken(
     context, undefined, undefined, undefined, undefined, undefined, employeeId);
 });
 
 Given('an employee with id of {string} exists', function (employeeId: string) {
-  aws.mock(
-    'DynamoDB.DocumentClient', 'get', async (params: any) => ({ Item: { staffNumber: employeeId } }));
+  dynamoDbClientMock.on(GetCommand).resolves(Promise.resolve({ Item: { staffNumber: employeeId } }));
 
   const context: AuthoriseStepsContext = this.context;
   context.restoreDynamoDBDocumentClient = true;
 });
 
 Given('an employee with id of {string} does not exist', function (employeeId: string) {
-  aws.mock('DynamoDB.DocumentClient', 'get', async (params: any) => ({}));
+  dynamoDbClientMock.on(GetCommand).resolves(Promise.resolve({}));
 
   const context: AuthoriseStepsContext = this.context;
   context.restoreDynamoDBDocumentClient = true;

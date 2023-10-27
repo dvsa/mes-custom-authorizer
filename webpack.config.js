@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const YAML = require('yamljs');
 
 const allEntries = Object.keys(YAML.load('serverless.yml').functions)
@@ -22,6 +23,11 @@ module.exports = env => ({
       },
     ],
   },
+  plugins: [
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^aws-crt/,
+    }),
+  ],
   resolve: {
     extensions: [ '.ts', '.js', '.jsx', '.json' ]
   },
