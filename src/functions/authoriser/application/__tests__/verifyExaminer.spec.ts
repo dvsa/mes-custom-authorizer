@@ -1,19 +1,25 @@
-import * as aws from 'aws-sdk-mock';
-
-import { VerifiedTokenPayload, EmployeeIdKey } from '../AdJwtVerifier';
+import {DynamoDBClient} from '@aws-sdk/client-dynamodb';
+import {GetCommand, GetCommandOutput} from '@aws-sdk/lib-dynamodb';
+import {mockClient} from 'aws-sdk-client-mock';
 import verifyExaminer from '../verifyExaminer';
-import { DynamoDB } from 'aws-sdk';
 
 describe('verifyExaminer', () => {
+  const dynamoDbMock = mockClient(DynamoDBClient);
+  const ddbItem = {
+    $metadata: {},
+    Item: {
+      staffNumber: '12345678',
+      role: 'LDTM',
+    },
+  } as GetCommandOutput;
 
   beforeEach(() => {
-    aws.restore('DynamoDB.DocumentClient');
+    dynamoDbMock.reset();
   });
 
   describe('verifiedToken parameter', () => {
     it('should not throw an exception when employeeid is valid', async () => {
-
-      aws.mock('DynamoDB.DocumentClient', 'get', async (params: any) => ({}));
+      dynamoDbMock.on(GetCommand).resolves(ddbItem);
 
       try {
         const result = await verifyExaminer('1435134');
@@ -26,36 +32,25 @@ describe('verifyExaminer', () => {
 
   describe('dynamo db get', () => {
     it('should return an empty object when no employeeId found in Users table', async () => {
-      aws.mock('DynamoDB.DocumentClient', 'get', async (params: any) => ({}));
+      dynamoDbMock.on(GetCommand).resolves({});
 
       try {
         const result = await verifyExaminer('12345678');
-        expect(result).toEqual({});
+        expect(result).toEqual({} as GetCommandOutput);
       } catch (err) {
         fail('verifyExaminer should not fail when no employeeId found in Users table');
       }
     });
 
     it('should return the db item when employeeId has been found', async () => {
-      const ddbItem = {
-        Item: {
-          staffNumber: '12345678',
-          role: 'LDTM',
-        },
-      };
-      aws.mock(
-        'DynamoDB.DocumentClient',
-        'get',
-        async (params: any) => ddbItem,
-      );
+      dynamoDbMock.on(GetCommand).resolves(ddbItem);
 
       try {
         const result = await verifyExaminer('12345678');
-        expect(result).toEqual(ddbItem as DynamoDB.Types.GetItemOutput);
+        expect(result).toEqual(ddbItem);
       } catch (err) {
         fail(`verifyExaminer should not fail, error: ${err}`);
       }
     });
   });
-
 });

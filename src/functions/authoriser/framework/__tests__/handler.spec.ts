@@ -1,4 +1,5 @@
 import { Mock, It, Times } from 'typemoq';
+import {GetCommandOutput} from '@aws-sdk/lib-dynamodb';
 import {
   CustomAuthorizerResult,
   AuthResponseContext,
@@ -11,7 +12,6 @@ import * as createAdJwtVerifier from '../createAdJwtVerifier';
 import * as verifyExaminer from '../../application/verifyExaminer';
 import * as getEmployeeIdKey from '../../application/getEmployeeIdKey';
 import * as extractEmployeeIdFromToken from '../../application/extractEmployeeIdFromToken';
-import { DynamoDB } from 'aws-sdk';
 
 describe('handler', () => {
   const moqFailedAuthLogger = Mock.ofType<Logger>();
@@ -51,11 +51,12 @@ describe('handler', () => {
   it('should throw an error if authorizationToken is not set', async () => {
     mockVerifyExaminer.setup(x => x(It.isAny()))
       .returns(() => Promise.resolve({
+        $metadata: {},
         Item: {
           staffNumber: '12345678',
           role: 'LDTM',
         },
-      } as DynamoDB.Types.GetItemOutput));
+      } as GetCommandOutput));
     spyOn(verifyExaminer, 'default').and.callFake(mockVerifyExaminer.object);
     testCustomAuthorizerEvent.authorizationToken = '';
 
@@ -90,11 +91,12 @@ describe('handler', () => {
 
     mockVerifyExaminer.setup(x => x(It.isAny()))
       .returns(() => Promise.resolve({
+        $metadata: {},
         Item: {
           staffNumber: '12345678',
           role: 'LDTM',
         },
-      } as DynamoDB.Types.GetItemOutput));
+      } as GetCommandOutput));
     spyOn(verifyExaminer, 'default').and.callFake(mockVerifyExaminer.object);
 
     mockAdJwtVerifier.setup(x => x.verifyJwt(It.isAny()))
@@ -132,10 +134,11 @@ describe('handler', () => {
 
     mockVerifyExaminer.setup(x => x(It.isAny()))
       .returns(() => Promise.resolve({
+        $metadata: {},
         Item: {
           staffNumber: '12345678',
         },
-      } as DynamoDB.Types.GetItemOutput));
+      } as GetCommandOutput));
     spyOn(verifyExaminer, 'default').and.callFake(mockVerifyExaminer.object);
 
     mockAdJwtVerifier.setup(x => x.verifyJwt(It.isAny()))
@@ -163,11 +166,12 @@ describe('handler', () => {
 
     mockVerifyExaminer.setup(x => x(It.isAny()))
       .returns(() => Promise.resolve({
+        $metadata: {},
         Item: {
           staffNumber: '12345678',
           role: 'LDTM',
         },
-      } as DynamoDB.Types.GetItemOutput));
+      } as GetCommandOutput));
     spyOn(verifyExaminer, 'default').and.callFake(mockVerifyExaminer.object);
 
     mockAdJwtVerifier.setup(x => x.verifyJwt(It.isAny()))
@@ -215,11 +219,12 @@ describe('handler', () => {
     };
     mockVerifyExaminer.setup(x => x(It.isAny()))
       .returns(() => Promise.resolve({
+        $metadata: {},
         Item: {
           staffNumber: '12345678',
           role: 'LDTM',
         },
-      } as DynamoDB.Types.GetItemOutput));
+      } as GetCommandOutput));
     spyOn(verifyExaminer, 'default').and.callFake(mockVerifyExaminer.object);
     mockAdJwtVerifier.setup(x => x.verifyJwt(It.isAny()))
       .returns(() => Promise.resolve(testVerifiedTokenPayload));
@@ -253,7 +258,7 @@ describe('handler', () => {
     };
 
     mockVerifyExaminer.setup(x => x(It.isAny()))
-      .returns(() => Promise.resolve({} as DynamoDB.Types.GetItemOutput));
+      .returns(() => Promise.resolve({} as GetCommandOutput));
     spyOn(verifyExaminer, 'default').and.callFake(mockVerifyExaminer.object);
 
     mockAdJwtVerifier.setup(x => x.verifyJwt(It.isAny()))
