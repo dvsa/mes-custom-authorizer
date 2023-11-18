@@ -27,7 +27,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudwatch-logs": "^3.437.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.438.0",
     "@aws-sdk/client-dynamodb": "^3.437.0",
     "@aws-sdk/lib-dynamodb": "^3.437.0",
     "@dvsa/mes-microservice-common": "1.0.2",
