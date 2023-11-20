@@ -2,7 +2,7 @@ service: mes-custom-authoriser
 
 provider:
   name: aws
-  runtime: nodejs18.x
+  runtime: nodejs20.x
   environment:
     DDB_OFFLINE_ENDPOINT: http://localhost:8000
     AZURE_AD_TENANT_ID: 6c448d90-4ca1-4caf-ab59-0a2aa67d7801
