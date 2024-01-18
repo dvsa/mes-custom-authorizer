@@ -24,7 +24,8 @@
     "test": "npm run compile && jasmine && npm run comp-test",
     "test:jasmine-coverage": "c8 npm run test",
     "start": "npm run compile && sls dynamodb install && sls offline start",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "sonar-scanner": "node_modules/sonar-scanner/bin/sonar-scanner"
   },
   "dependencies": {
     "@aws-sdk/client-cloudwatch-logs": "^3.437.0",
@@ -61,6 +62,7 @@
     "serverless-offline": "^13.2.0",
     "serverless-webpack": "^5.13.0",
     "sinon": "^17.0.0",
+    "sonar-scanner": "^3.1.0",
     "source-map-support": "^0.5.21",
     "ts-loader": "^9.5.0",
     "ts-node": "^10.9.1",
