@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-cloudwatch-logs": "^3.454.0",
-    "@aws-sdk/client-dynamodb": "^3.454.0",
+    "@aws-sdk/client-dynamodb": "^3.529.0",
     "@aws-sdk/lib-dynamodb": "^3.454.0",
     "@dvsa/mes-microservice-common": "1.1.6",
     "jsonwebtoken": "^9.0.2",
