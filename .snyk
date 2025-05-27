@@ -6,6 +6,6 @@ ignore:
   SNYK-JS-FASTXMLPARSER-7573289:
     - '*':
         reason: Improper Verification of Cryptographic Signature - No upgrade or patch available
-        expires: 2025-04-01T09:00:00.119Z
+        expires: 2025-08-01T09:00:00.119Z
         created: 2025-02-07T09:00:00.122Z
 patch: {}
