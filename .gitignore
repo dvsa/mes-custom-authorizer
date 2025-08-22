@@ -21,3 +21,4 @@ dist
 coverage/
 .env
 tslint-to-eslint-config.log
+./idea/
