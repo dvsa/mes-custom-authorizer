@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   release-manifest:
-    uses: dvsa/des-workflow-actions/.github/workflows/release-manifest.yaml@main
+    uses: dvsa/des-workflow-actions/.github/workflows/release-manifest.yaml@MES-10606_Fix_Release_Manifest
     with:
       component: 'api'
     secrets: inherit
