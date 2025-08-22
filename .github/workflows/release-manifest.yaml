@@ -1,5 +1,6 @@
 name: Create Release Manifest
 on:
+  workflow_dispatch:
   push:
     tags:
       - release-*
